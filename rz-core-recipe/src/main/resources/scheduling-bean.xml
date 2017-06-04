@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+  default-autowire="byName">
+
+  <!--定时任务实现类 -->
+  <bean id="tester" class="com.rz.core.recipe.scheduling.Tester" />
+  <!--任务代理 -->
+  <bean id="jobDetail1" class="com.rz.core.recipe.scheduling.JobDetailProxyBean">
+    <property name="targetObject" ref="tester" />
+    <property name="targetMethod" value="test" />
+  </bean>
+  <!--触发器 -->
+  <bean id="cronTrigger" class="com.rz.core.recipe.scheduling.CronTriggerBean">
+    <property name="jobDetail" ref="jobDetail1" />
+    <property name="cronExpression" value="0/10 * * * * ?" />
+  </bean>
+  <!--zk配置 -->
+  <bean id="zooKeeperFactory" class="com.rz.core.recipe.scheduling.ZookeeperFactory">
+    <property name="hosts" value="192.168.36.63:2181" />
+    <property name="sessionTimeOut" value="15000" />
+    <property name="nameSpace" value="hj-scheduling" />
+  </bean>
+  <!--调度工厂 -->
+  <bean id="schdulerFactory" autowire="no" class="com.rz.core.recipe.scheduling.SchedulerFactoryBean">
+    <property name="triggers">
+      <list>
+        <ref bean="cronTrigger" />
+      </list>
+    </property>
+    <property name="zooKeeperFactory" ref="zooKeeperFactory" />
+  </bean>
+</beans>  

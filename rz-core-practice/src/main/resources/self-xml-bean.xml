@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd 
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.0.xsd">
+ 
+    <description>健康检测组件</description>
+    
+    <bean name="dataSourceCheck" class="com.rz.core.practice.model.NormalDto">
+        <property name="name" value="asd" />
+        <property name="age" value="123" />
+    </bean>
+ 
+    <!-- 扫描包，包括controller 类 -->
+    <!--
+    <context:component-scan base-package="com.hujiang.basic.selfcheck" />
+    -->
+ 
+    <!-- DB 检测，如果多个DB请求，请分开 初始化bean  -->
+    <!--
+    <bean name="dataSourceCheck" class="com.hujiang.basic.selfcheck.DataSourceSelfCheck">
+        <property name="dataSource" ref="dynamicDataSource" />
+        <property name="level" value="normal" />
+        <property name="mail" value="xiaoming@hujiang.com" />
+        <property name="phone" value="123456789" />
+    </bean>
+    -->
+ 
+    <!-- redis 检测，如果多个redis请求，请分开 初始化bean  -->
+    <!--
+    <bean name="redisCheck" class="com.hujiang.basic.selfcheck.RedisSelfCheck">
+        <property name="level" value="serious" />
+        <property name="host" value="192.168.151.221" />
+        <property name="port" value="56379" />
+        <property name="password" value="54321" />
+        <property name="mail" value="xiaoming@hujiang.com" />
+        <property name="phone" value="123456789" />
+    </bean>
+    -->
+ 
+    <!-- MQ 检测，如果多个MQ探测，分开 初始化bean  -->
+    <!--
+    <bean name="rabbitHealthCheck" class="com.hujiang.basic.selfcheck.RabbitSelfCheck">
+        <property name="rabbitTemplate" ref="rabbitTemplate" />
+        <property name="level" value="normal" />
+        <property name="mail" value="xiaoming@hujiang.com" />
+        <property name="phone" value="123456789" />
+    </bean>
+    -->
+ 
+    <!--rabbit:template id="rabbitTemplate" connection-factory="connectionFactory" /-->
+ 
+    <!--rabbit:connection-factory id="connectionFactory" username="us_chao" password="us_chao" host="192.168.36.77" port="5672" virtual-host="/" /-->
+ 
+</beans>

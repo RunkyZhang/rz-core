@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:util="http://www.springframework.org/schema/util" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+  xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd 
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.0.xsd">
+
+  <description>bean description</description>
+
+  <bean id="advertisementManager_beanId" class="com.rz.core.springaction.service.AdvertisementManager">
+    <constructor-arg value="fly" />
+    <constructor-arg value="20000" />
+    <constructor-arg>
+      <list>
+        <value>aaa</value>
+        <value>bbb</value>
+        <value>ccc</value>
+      </list>
+    </constructor-arg>
+    <constructor-arg>
+      <null />
+    </constructor-arg>
+  </bean>
+
+  <bean id="adpersoninManager_beanId" class="com.rz.core.springaction.service.AdpersoninManager">
+    <property name="advertisementManager" ref="advertisementManager_beanId" />
+  </bean>
+
+  <beans profile="test">
+    <bean id="advertisementManager_beanId" class="com.rz.core.springaction.service.AdvertisementManager">
+      <constructor-arg value="run" />
+      <constructor-arg value="80000" />
+      <constructor-arg>
+        <list>
+          <value>111</value>
+          <value>222</value>
+          <value>333</value>
+        </list>
+      </constructor-arg>
+      <constructor-arg>
+        <null />
+      </constructor-arg>
+    </bean>
+
+    <bean id="adpersoninManager_beanId" class="com.rz.core.springaction.service.AdpersoninManager">
+      <property name="advertisementManager" ref="advertisementManager_beanId" />
+    </bean>
+  </beans>
+
+</beans>
