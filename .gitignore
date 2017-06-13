@@ -9,7 +9,7 @@
 
 */target/
 */.settings/
-/.idea
+*/.idea
 */logs/
 */log/
 */.classpath
