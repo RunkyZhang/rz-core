@@ -232,5 +232,6 @@
     <module>rz-core-queuing</module>
     <module>rz-core-cache</module>
     <module>rz-core-springaction</module>
+    <module>rz-core-springbootaction</module>
   </modules>
 </project>
