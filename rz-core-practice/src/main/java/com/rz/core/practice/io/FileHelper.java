@@ -15,8 +15,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.springframework.util.StreamUtils;
 
-import com.rz.core.utils.FileUtils;
-
 public class FileHelper {
     public static void main(String[] args) {
         FileHelper fileHelper = new FileHelper();

@@ -1,5 +1,6 @@
 package com.rz.core.springbootaction.controller;
 
+import com.rz.core.practice.dynamic.InstrumentationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,11 @@ public class ApiController {
 
     @RequestMapping(value = "v3/message/push", method = RequestMethod.POST)
     public String push(@RequestBody String appPushMessage) {
+        InstrumentationService instrumentationService = new InstrumentationService();
 
-        return name + appPushMessage;
+        return name
+                + "---" + appPushMessage
+                + "---" + instrumentationService.getSex(false)
+                + "---" + InstrumentationService.getName();
     }
 }

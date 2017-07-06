@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class DateTimeUtils {
+public class DateTimeUtility {
     /*
      * yyyy-MM-dd
      */
@@ -19,7 +19,7 @@ public class DateTimeUtils {
     public final static String DATE_FORMAT3 = "yyyy-MM-dd HH:mm:ss SSS";
     
     public static Date toDate(int year, int month, int day) {
-        return DateTimeUtils.toDate(year, month, day, 0, 0, 0, 0);
+        return DateTimeUtility.toDate(year, month, day, 0, 0, 0, 0);
     }
 
     public static Date toDate(int year, int month, int day, int hour, int minute, int second, int millisecond) {
@@ -37,15 +37,15 @@ public class DateTimeUtils {
     }
 
     public static Date toYear(Date date) {
-        return DateTimeUtils.toDate(DateTimeUtils.getYear(date), 1, 1);
+        return DateTimeUtility.toDate(DateTimeUtility.getYear(date), 1, 1);
     }
 
     public static Date toMonth(Date date) {
-        return DateTimeUtils.toDate(DateTimeUtils.getYear(date), DateTimeUtils.getMonth(date), 1);
+        return DateTimeUtility.toDate(DateTimeUtility.getYear(date), DateTimeUtility.getMonth(date), 1);
     }
 
     public static Date toDay(Date date) {
-        return DateTimeUtils.toDate(DateTimeUtils.getYear(date), DateTimeUtils.getMonth(date), DateTimeUtils.getDay(date));
+        return DateTimeUtility.toDate(DateTimeUtility.getYear(date), DateTimeUtility.getMonth(date), DateTimeUtility.getDay(date));
     }
 
     public static Date getNow() {
@@ -53,17 +53,17 @@ public class DateTimeUtils {
     }
 
     public static Date getToday() {
-        Date now = DateTimeUtils.getNow();
+        Date now = DateTimeUtility.getNow();
 
-        return DateTimeUtils.toDate(DateTimeUtils.getYear(now), DateTimeUtils.getMonth(now), DateTimeUtils.getDay(now));
+        return DateTimeUtility.toDate(DateTimeUtility.getYear(now), DateTimeUtility.getMonth(now), DateTimeUtility.getDay(now));
     }
     
     public static Date getMinDate() {
-        return DateTimeUtils.toDate(1, 1, 1);
+        return DateTimeUtility.toDate(1, 1, 1);
     }
 
     public static Date getMaxDate() {
-        return DateTimeUtils.toDate(9999, 12, 31, 23, 59, 59, 999);
+        return DateTimeUtility.toDate(9999, 12, 31, 23, 59, 59, 999);
     }
     
     public static double totalDays(Date date1, Date date2) {

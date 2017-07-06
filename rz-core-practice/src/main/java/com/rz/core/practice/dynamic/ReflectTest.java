@@ -17,14 +17,14 @@ import com.rz.core.practice.model.MapDto;
 import com.rz.core.practice.model.MonitorDto;
 import com.rz.core.practice.model.NormalDto;
 import com.rz.core.practice.model.TagAnnotation;
-import com.rz.core.utils.DateTimeUtils;
+import com.rz.core.utils.DateTimeUtility;
 
 public class ReflectTest {
     public static void main(String[] args) {
         System.out.println( new Date().getTime());
         System.out.println( System.currentTimeMillis());
-        
-        DateTimeUtils.addDay(new Date(), 1);
+
+        DateTimeUtility.addDay(new Date(), 1);
         ReflectTest reflectTest = new ReflectTest();
         try {
             //reflectTest.test();
