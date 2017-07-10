@@ -41,6 +41,7 @@
     <redis.clients-jedis.version>2.9.0</redis.clients-jedis.version>
     <commons-logging.version>1.2</commons-logging.version>
     <junit.version>4.12</junit.version>
+    <org.mongodb-mongo-java-driver.version>3.4.2</org.mongodb-mongo-java-driver.version>
   </properties>
 
   <dependencyManagement>
@@ -220,6 +221,16 @@
         <artifactId>spring-webmvc</artifactId>
         <version>${org.springframework.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongo-java-driver</artifactId>
+        <version>${org.mongodb-mongo-java-driver.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>bson</artifactId>
+        <version>${org.mongodb-mongo-java-driver.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -233,5 +244,6 @@
     <module>rz-core-cache</module>
     <module>rz-core-springaction</module>
     <module>rz-core-springbootaction</module>
+    <module>rz-core-momgo</module>
   </modules>
 </project>
