@@ -10,6 +10,10 @@ public class DateTimeUtilityTest {
         DateTimeUtilityTest dateTimeUtilityTest = new DateTimeUtilityTest();
         dateTimeUtilityTest.test();
 
+        for(int i = 0; i < 356; i++) {
+            System.out.println(DateTimeUtility.fristDayOfWeek(DateTimeUtility.addDay(new Date(), i)));
+        }
+
         System.out.println("End DateTimeUtilsTest...");
     }
 

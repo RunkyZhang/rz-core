@@ -1,5 +1,6 @@
 package com.rz.core.utils;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,7 +18,7 @@ public class DateTimeUtility {
      * yyyy-MM-dd HH:mm:ss SSS
      */
     public final static String DATE_FORMAT3 = "yyyy-MM-dd HH:mm:ss SSS";
-    
+
     public static Date toDate(int year, int month, int day) {
         return DateTimeUtility.toDate(year, month, day, 0, 0, 0, 0);
     }
@@ -28,6 +29,14 @@ public class DateTimeUtility {
         calendar.set(Calendar.MILLISECOND, millisecond);
 
         return calendar.getTime();
+    }
+
+    public static Date parse(String dateString) throws ParseException {
+        return DateTimeUtility.parse(dateString, DateTimeUtility.DATE_FORMAT1);
+    }
+
+    public static Date parse(String dateString, String dateFormat) throws ParseException {
+        return new SimpleDateFormat(dateFormat).parse(dateString);
     }
 
     public static String toString(Date date, String format) {
@@ -57,7 +66,7 @@ public class DateTimeUtility {
 
         return DateTimeUtility.toDate(DateTimeUtility.getYear(now), DateTimeUtility.getMonth(now), DateTimeUtility.getDay(now));
     }
-    
+
     public static Date getMinDate() {
         return DateTimeUtility.toDate(1, 1, 1);
     }
@@ -65,7 +74,7 @@ public class DateTimeUtility {
     public static Date getMaxDate() {
         return DateTimeUtility.toDate(9999, 12, 31, 23, 59, 59, 999);
     }
-    
+
     public static double totalDays(Date date1, Date date2) {
         double difference = date1.getTime() - date2.getTime();
 
@@ -194,18 +203,28 @@ public class DateTimeUtility {
 
         return calendar.getTime();
     }
-    
+
     public static int dayOfYear(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-        
+
         return calendar.get(Calendar.DAY_OF_YEAR);
     }
 
     public static int dayOfWeek(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-        
+
         return calendar.get(Calendar.DAY_OF_WEEK);
+    }
+
+    public static Date fristDayOfWeek(Date date) {
+        date = DateTimeUtility.toDay(date);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek());
+
+        return DateTimeUtility.addDay(calendar.getTime(), 1);
     }
 }
