@@ -1,6 +1,7 @@
 package com.rz.core.springbootaction.controller;
 
 import com.rz.core.practice.dynamic.InstrumentationService;
+import com.rz.core.springbootaction.service.BeanApplicationContextAware;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +20,12 @@ public class ApiController {
     public String push(@RequestBody String appPushMessage) {
         InstrumentationService instrumentationService = new InstrumentationService();
 
-        return name
+        String[] beanNames = BeanApplicationContextAware.getApplicationContext().getBeanDefinitionNames();
+        for (String beanName : beanNames) {
+            System.out.println("***bean name: " + beanName);
+        }
+
+        return "****" + name
                 + "---" + appPushMessage
                 + "---" + instrumentationService.getSex(false)
                 + "---" + InstrumentationService.getName();

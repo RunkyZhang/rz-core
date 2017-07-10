@@ -9,7 +9,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class LoadConfigApplicationContextInitializer implements ApplicationContextInitializer {
     @Override
     public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-        System.out.println("LoadConfigApplicationContextInitializer");
+        System.out.println("****LoadConfigApplicationContextInitializer");
     }
 }
 

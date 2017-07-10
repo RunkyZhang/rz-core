@@ -18,8 +18,9 @@ import java.util.Properties;
  */
 @Component
 public class MarkablePropertyPlaceholderConfigurer extends PropertyPlaceholderConfigurer {
+    public MarkablePropertyPlaceholderConfigurer() {
+        System.out.println("****MarkablePropertyPlaceholderConfigurer");
 
-    public  MarkablePropertyPlaceholderConfigurer(){
         this.setLocation(new ClassPathResource("application.properties"));
     }
 
@@ -27,18 +28,15 @@ public class MarkablePropertyPlaceholderConfigurer extends PropertyPlaceholderCo
     protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess, Properties props) throws BeansException {
         String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
         for (String beanName : beanNames) {
-            System.out.println(beanName);
-
             BeanDefinition beanDefinition = beanFactoryToProcess.getBeanDefinition(beanName);
             MutablePropertyValues mutablePropertyValues = beanDefinition.getPropertyValues();
             List<PropertyValue> propertyValues = mutablePropertyValues.getPropertyValueList();
             for (PropertyValue propertyValue : propertyValues) {
-
                 System.out.println(propertyValue.getName() + ": " + propertyValue.getValue());
                 if (propertyValue.getValue() instanceof TypedStringValue) {
-                    System.out.println("TypedStringValue");
+                    System.out.println("****" + beanName + ": TypedStringValue");
                 } else {
-                    System.out.println("Not TypedStringValue");
+                    System.out.println("****" + beanName + ": Not TypedStringValue");
                 }
             }
         }

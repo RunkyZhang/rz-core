@@ -11,11 +11,11 @@ import javax.servlet.annotation.WebListener;
 public class ConfigServletContextListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
-        System.out.println("start ServletContextListener" + ServletContextListener.class.getClassLoader().getResource("").getPath());
+        System.out.println("****start ServletContextListener" + ServletContextListener.class.getClassLoader().getResource("").getPath());
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
-        System.out.println("end ServletContextListener");
+        System.out.println("****end ServletContextListener");
     }
 }
