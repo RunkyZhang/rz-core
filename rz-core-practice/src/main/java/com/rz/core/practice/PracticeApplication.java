@@ -1,12 +1,6 @@
 package com.rz.core.practice;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,17 +24,17 @@ import com.rz.core.practice.util.AppShutdownHandler;
 // @ComponentScan({ "com.hujiang.basic.framework.rest",
 // "com.hujiang.basic.framework.plugin.cache",
 // "com.hujiang.notifycenter.apppush", "com.hujiang.notifycenter.core" })
-@Import({ PracticeConfig.class })
+@Import({PracticeConfig.class})
 // @Import({ SelfXmlBeanConfig.class })
 public class PracticeApplication {
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(PracticeApplication.class, new String[] {});
-        
+        SpringApplication.run(PracticeApplication.class, new String[]{});
+
         Map<String, Date> map = new HashMap<>();
         map.put("ddd", new Date());
         String dateJson = JSON.toJSONString(map, SerializerFeature.UseISO8601DateFormat);
         Map date1 = JSON.parseObject(dateJson, Map.class);
-        date1 = JSON.parseObject("{\"ddd\":\"2017-04-17T16:58:16.0254752+08:00\"}", Map.class);        
+        date1 = JSON.parseObject("{\"ddd\":\"2017-04-17T16:58:16.0254752+08:00\"}", Map.class);
 //        
 //        List<String> ssss = new ArrayList<>();
 //        ssss.addAll(null);
@@ -61,7 +55,7 @@ public class PracticeApplication {
 //        
 //        Date date = new Date(2015, 8, 8, 12, 12, 12);
 //        Date now = new Date(date.getTime());
-        
+
         // testCollection();
         // testAppShutdown();
         // testClone();
@@ -203,7 +197,7 @@ public class PracticeApplication {
 
         if (flag) {
             // need @Import({ PracticeConfig.class })
-            SpringApplication.run(PracticeApplication.class, new String[] {});
+            SpringApplication.run(PracticeApplication.class, new String[]{});
 
         } else {
             Class<?> configClazz = PracticeConfig.class;
@@ -223,11 +217,11 @@ public class PracticeApplication {
         }
     }
 
-    protected static void testRegex(){
+    protected static void testRegex() {
         String asd = "12345{{{0}}}67899adqweqweqweqweqwe";
         asd = asd.replaceAll("\\{\\{\\{(\\d{1,})\\}\\}\\}", "{$1}");
-        Pattern pattern = Pattern.compile("\\{\\{\\{(\\d{1,})\\}\\}\\}"); 
-        Matcher matcher = pattern.matcher(asd);         
+        Pattern pattern = Pattern.compile("\\{\\{\\{(\\d{1,})\\}\\}\\}");
+        Matcher matcher = pattern.matcher(asd);
         asd = matcher.replaceAll("{$1}");
     }
 }

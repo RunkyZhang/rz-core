@@ -2,6 +2,7 @@ package com.rz.core;
 
 import java.io.Closeable;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.net.Inet4Address;
@@ -14,13 +15,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -34,8 +29,8 @@ import javax.crypto.spec.IvParameterSpec;
 import org.apache.commons.lang3.ArrayUtils;
 
 public abstract class RZHelper {
-    private final static byte[] PASSWORD_KEY = new byte[] { 'h', 'j', 'n', 'o', 't', 'i', 'f', 'y' };
-    private final static byte[] PASSWORD_IV = new byte[] { 'h', 'j', 't', 'p', 'm', 's', 'g', 's' };
+    private final static byte[] PASSWORD_KEY = new byte[]{'h', 'j', 'n', 'o', 't', 'i', 'f', 'y'};
+    private final static byte[] PASSWORD_IV = new byte[]{'h', 'j', 't', 'p', 'm', 's', 'g', 's'};
     private static List<String> ipV4s = null;
 
     public static boolean isBaseClazz(Class<?> clazz) {
@@ -335,4 +330,71 @@ public abstract class RZHelper {
 
         return map;
     }
+
+    public static <T> List<T> iteratorToList(Iterator<T> iterator) {
+        if (null == iterator) {
+            return null;
+        }
+
+        List<T> list = new ArrayList<>();
+        while (iterator.hasNext()) {
+            list.add(iterator.next());
+        }
+
+        return list;
+    }
+
+    public static <T> List<T> collectionToList(Collection<T> collection) {
+        if (null == collection) {
+            return null;
+        }
+
+        List<T> list;
+        if (collection instanceof List) {
+            list = (List) collection;
+        } else {
+            list = new ArrayList(collection);
+        }
+
+        return list;
+    }
+
+    public static <T> List<T> setToList(Set<T> set) {
+        if (null == set) {
+            return null;
+        }
+
+        return new ArrayList<>(set);
+    }
+
+    public static <T> Set<T> setToList(List<T> list) {
+        if (null == list) {
+            return null;
+        }
+
+        return new HashSet<>(list);
+    }
+
+    public static Field[] getDeclaredFields(Class<?> clazz) {
+        if (null == clazz) {
+            return null;
+        }
+
+        Map<String, Field> allFields = new HashMap<>();
+        Class<?> superClass = clazz;
+        do {
+            Field[] fields = superClass.getDeclaredFields();
+            for (Field field : fields) {
+                if (!allFields.containsKey(field.getName())) {
+                    allFields.put(field.getName(), field);
+                }
+            }
+
+            superClass = superClass.getSuperclass();
+        } while (null != superClass);
+
+        return allFields.values().toArray(new Field[allFields.size()]);
+    }
+
+
 }

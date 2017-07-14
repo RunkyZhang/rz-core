@@ -35,6 +35,62 @@ public class Assert {
         }
     }
 
+    public static void isNotEmpty(Object[] array, String name) {
+        if (null == array || 0 == array.length) {
+            String errorMessage = "The parameter [" + name + "] value is empty.";
+            throw Assert.buildException(errorMessage);
+        }
+    }
+
+    public static void isNotEmpty(boolean[] array, String name) {
+        if (null == array || 0 == array.length) {
+            String errorMessage = "The parameter [" + name + "] value is empty.";
+            throw Assert.buildException(errorMessage);
+        }
+    }
+
+    public static void isNotEmpty(int[] array, String name) {
+        if (null == array || 0 == array.length) {
+            String errorMessage = "The parameter [" + name + "] value is empty.";
+            throw Assert.buildException(errorMessage);
+        }
+    }
+
+    public static void isNotEmpty(double[] array, String name) {
+        if (null == array || 0 == array.length) {
+            String errorMessage = "The parameter [" + name + "] value is empty.";
+            throw Assert.buildException(errorMessage);
+        }
+    }
+
+    public static void isNotEmpty(byte[] array, String name) {
+        if (null == array || 0 == array.length) {
+            String errorMessage = "The parameter [" + name + "] value is empty.";
+            throw Assert.buildException(errorMessage);
+        }
+    }
+
+    public static void isNotEmpty(char[] array, String name) {
+        if (null == array || 0 == array.length) {
+            String errorMessage = "The parameter [" + name + "] value is empty.";
+            throw Assert.buildException(errorMessage);
+        }
+    }
+
+    public static void isNotEmpty(float[] array, String name) {
+        if (null == array || 0 == array.length) {
+            String errorMessage = "The parameter [" + name + "] value is empty.";
+            throw Assert.buildException(errorMessage);
+        }
+    }
+
+    public static void isNotEmpty(short[] array, String name) {
+        if (null == array || 0 == array.length) {
+            String errorMessage = "The parameter [" + name + "] value is empty.";
+            throw Assert.buildException(errorMessage);
+        }
+    }
+
     public static void isTrue(boolean condition, String errorMessage) {
         Assert.areEqual(true, condition, errorMessage);
     }

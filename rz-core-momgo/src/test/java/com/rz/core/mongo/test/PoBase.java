@@ -9,7 +9,8 @@ import java.util.Date;
 public class PoBase implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Object _id;
+    private String id;
+    private boolean isDeleted;
     private String operationUser;
     private Date createdTime;
     private Date updatedTime;
@@ -47,11 +48,19 @@ public class PoBase implements Serializable {
         this.comment = comment;
     }
 
-    public Object getId() {
-        return _id;
+    public String getId() {
+        return id;
     }
 
-    public void setId(Object id) {
-        this._id = id;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 }
