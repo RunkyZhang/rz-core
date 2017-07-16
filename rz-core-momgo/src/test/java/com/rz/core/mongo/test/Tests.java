@@ -1,5 +1,6 @@
 package com.rz.core.mongo.test;
 
+import com.alibaba.fastjson.JSON;
 import com.mongodb.client.model.Filters;
 import com.rz.core.mongo.builder.MongoRepositoryBuilder;
 import com.rz.core.mongo.builder.MongoSort;
@@ -15,6 +16,8 @@ public class Tests {
     private static MongoRepository<ConfigApplicationPo> mongoRepository;
 
     public static void main(String[] args) {
+
+
         mongoRepository = MongoRepositoryBuilder.create(ConfigApplicationPo.class)
                 .setDatabaseName("ConfigCenterBusiness")
                 .setTableName("ConfigApplication")
@@ -25,10 +28,19 @@ public class Tests {
         try {
             //tests.testSelect();
             //tests.testCount();
-            tests.testDelete();
+            //tests.testDelete();
+            tests.test();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void test() {
+        ConfigApplicationPo asd = JSON.parseObject(
+                "{\"createdTime\":1500192980072,\"deleted\":false,\"id\":\"asdasd\",\"operationUser\":\"888.666\",\"privateValue1\":\"3333\",\"privateValue2\":\"22222\",\"privateValue3\":\"2222\",\"privateValue4\":\"1111\",\"updatedTime\":1500192980072,\"versions\":[{\"createdTime\":1500192980072,\"default\":true,\"deleted\":false,\"id\":\"0.0\",\"operationUser\":\"888.666\",\"privateValue3\":\"privateValue3\",\"updatedTime\":1500192980072}]}",
+                ConfigApplicationPo.class);
+
+        System.out.println(JSON.toJSONString(build("asdasd")));
     }
 
     private void testInstert() {

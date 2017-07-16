@@ -2,27 +2,29 @@ package com.rz.core.mongo.builder;
 
 import com.mongodb.MongoClientURI;
 import com.rz.core.Assert;
-import com.rz.core.mongo.repository.DefaultMongoRepository;
-import com.rz.core.mongo.repository.MongoRepository;
+import com.rz.core.mongo.repository.*;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * Created by renjie.zhang on 7/14/2017.
  */
-public class MongoRepositoryBuilder<T> {
-    private Class<T> clazz;
+public class ShardingMongoRepositoryBuilder<TPo, TSharding> {
+    private Class<TPo> clazz;
+    private Shardingable<TSharding> shardingable;
     private String connectionString;
     private String databaseName;
     private String tableName;
 
-    private MongoRepositoryBuilder(Class<T> clazz) {
+    private ShardingMongoRepositoryBuilder(Class<TPo> clazz, Shardingable<TSharding> shardingable) {
         Assert.isNotNull(clazz, "clazz");
+        Assert.isNotNull(shardingable, "shardingable");
 
         this.clazz = clazz;
+        this.shardingable = shardingable;
         this.connectionString = "mongodb://localhost:27017/default";
     }
 
-    public MongoRepositoryBuilder<T> setConnectionString(String connectionString) {
+    public ShardingMongoRepositoryBuilder<TPo, TSharding> setConnectionString(String connectionString) {
         Assert.isNotBlank(connectionString, "connectionString");
 
         this.connectionString = connectionString;
@@ -30,7 +32,7 @@ public class MongoRepositoryBuilder<T> {
         return this;
     }
 
-    public MongoRepositoryBuilder<T> setDatabaseName(String databaseName) {
+    public ShardingMongoRepositoryBuilder<TPo, TSharding> setDatabaseName(String databaseName) {
         Assert.isNotBlank(databaseName, "databaseName");
 
         this.databaseName = databaseName;
@@ -38,7 +40,7 @@ public class MongoRepositoryBuilder<T> {
         return this;
     }
 
-    public MongoRepositoryBuilder setTableName(String tableName) {
+    public ShardingMongoRepositoryBuilder setTableName(String tableName) {
         Assert.isNotBlank(tableName, "tableName");
 
         this.tableName = tableName;
@@ -46,7 +48,7 @@ public class MongoRepositoryBuilder<T> {
         return this;
     }
 
-    public MongoRepository<T> build() {
+    public ShardingMongoRepository<TPo, TSharding> build() {
         MongoClientURI mongoClientUri = new MongoClientURI(this.connectionString);
         if (StringUtils.isBlank(this.databaseName)) {
             this.databaseName = mongoClientUri.getDatabase();
@@ -58,10 +60,10 @@ public class MongoRepositoryBuilder<T> {
             this.tableName = this.clazz.getName();
         }
 
-        return new DefaultMongoRepository(this.clazz, this.connectionString, this.databaseName, this.tableName);
+        return new DefaultShardingMongoRepository(this.clazz, this.shardingable, this.connectionString, this.databaseName, this.tableName);
     }
 
-    public static <T> MongoRepositoryBuilder<T> create(Class<T> clazz) {
-        return new MongoRepositoryBuilder<T>(clazz);
+    public static <T, TSharding> ShardingMongoRepositoryBuilder<T, TSharding> create(Class<T> clazz, Shardingable<TSharding> shardingable) {
+        return new ShardingMongoRepositoryBuilder<>(clazz, shardingable);
     }
 }

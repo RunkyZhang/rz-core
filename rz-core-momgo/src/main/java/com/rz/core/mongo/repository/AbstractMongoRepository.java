@@ -58,7 +58,7 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
         this.rawConnectionString = rawConnectionString;
         this.rawDatabaseName = rawDatabaseName;
         this.rawTableName = rawTableName;
-        this.executant = new Executant(this.poDefinition);
+        this.executant = new Executant<>(this.poDefinition);
 
         this.mongoClient = SourcePool.getMongoClient(this.rawConnectionString);
         this.mongoDatabase = SourcePool.getMongoDatabase(this.rawConnectionString, rawDatabaseName);
@@ -158,5 +158,20 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     @Override
     public long updateById(Object id, T po) {
         return this.executant.updateById(this.getMongoCollection(), id, po);
+    }
+
+    @Override
+    public long update(Bson filter, T po) {
+        return this.executant.update(this.getMongoCollection(), filter, po);
+    }
+
+    @Override
+    public long updateById(Object id, Map<String, Object> values) {
+        return this.executant.updateById(this.getMongoCollection(), id, values);
+    }
+
+    @Override
+    public long update(Bson filter, Map<String, Object> values) {
+        return this.executant.update(this.getMongoCollection(), filter, values);
     }
 }

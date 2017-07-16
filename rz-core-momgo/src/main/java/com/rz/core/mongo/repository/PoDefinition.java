@@ -2,93 +2,88 @@ package com.rz.core.mongo.repository;
 
 import com.rz.core.Assert;
 import com.rz.core.RZHelper;
-import com.rz.core.mongo.annotation.MongoId;
-import com.rz.core.mongo.annotation.MongoIndex;
-import org.apache.commons.lang3.StringUtils;
+import com.rz.core.Tuple2;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by renjie.zhang on 7/11/2017.
  */
 public class PoDefinition<T> {
-    public static final String ID_FIELD_NAME = "id";
-    public static final String MONGO_ID_FIELD_NAME = "_id";
-
     private Class<T> clazz;
-    private String idFieldName;
-    private Set<String> indexFieldNames;
+    private Tuple2<String, PoFieldDefinition<T>> idField;
+    private List<Tuple2<String, PoFieldDefinition<T>>> indexFields;
+    private Map<String, PoFieldDefinition<T>> fields;
+
+    public Class<T> getPoClazz() {
+        return this.clazz;
+    }
+
+    public Tuple2<String, PoFieldDefinition<T>> getIdField() {
+        return idField;
+    }
+
+    public List<Tuple2<String, PoFieldDefinition<T>>> getIndexFields() {
+        return indexFields;
+    }
+
+    public Map<String, PoFieldDefinition<T>> getFields() {
+        return fields;
+    }
 
     public PoDefinition(Class<T> clazz) {
         Assert.isNotNull(clazz, "clazz");
 
         this.clazz = clazz;
-        this.indexFieldNames = new HashSet<>();
+        this.idField = null;
+        this.indexFields = new ArrayList<>();
+        this.fields = new HashMap<>();
 
         Field[] fields = RZHelper.getDeclaredFields(clazz);
-        this.setIdFieldName(fields);
-        this.setIndexFiledNames(fields);
-    }
-
-    public Class<T> getClazz() {
-        return this.clazz;
-    }
-
-    public String getIdFieldName() {
-        return this.idFieldName;
-    }
-
-    public Set<String> getIndexFieldNames() {
-        return this.indexFieldNames;
-    }
-
-    private void setIdFieldName(Field[] fields) {
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) {
-                if (PoDefinition.ID_FIELD_NAME.equals(field.getName())) {
-                    if (StringUtils.isBlank(this.idFieldName)) {
-                        this.idFieldName = PoDefinition.ID_FIELD_NAME;
-                    }
-                } else if (PoDefinition.MONGO_ID_FIELD_NAME.equals(field.getName())) {
-                    this.idFieldName = PoDefinition.MONGO_ID_FIELD_NAME;
+                PoFieldDefinition<T> poFieldDefinition = new PoFieldDefinition<>(clazz, field);
+                if (poFieldDefinition.isIndex()) {
+                    indexFields.add(new Tuple2<>(poFieldDefinition.getName(), poFieldDefinition));
                 }
 
-//                if (this.isIdFieldByAnnotation(field)) {
-//                    this.idFieldName = field.getName();
-//                    break;
-//                }
+                if (poFieldDefinition.isId()) {
+                    this.setIdField(poFieldDefinition);
+                }
+
+                this.fields.put(poFieldDefinition.getName(), poFieldDefinition);
             }
         }
 
-        if (StringUtils.isBlank(this.idFieldName)) {
-            this.idFieldName = PoDefinition.MONGO_ID_FIELD_NAME;
+        if (null == idField) {
+            this.idField = new Tuple2<>(PoFieldDefinition.MONGO_ID_FIELD_NAME, null);
         }
     }
 
-    private void setIndexFiledNames(Field[] fields) {
-        this.indexFieldNames.add(this.idFieldName);
-        for (Field field : fields) {
-            Annotation[] annotations = field.getAnnotations();
-            for (Annotation annotation : annotations) {
-                if (MongoIndex.class == annotation.annotationType()) {
-                    this.indexFieldNames.add(field.getName());
-                }
-            }
-        }
+    public boolean containsField(String name) {
+        return this.fields.containsKey(name);
     }
 
-    private boolean isIdFieldByAnnotation(Field field) {
-        Annotation[] annotations = field.getAnnotations();
-        for (Annotation annotation : annotations) {
-            if (MongoId.class == annotation.annotationType()) {
-                return true;
-            }
-        }
+    public PoFieldDefinition<T> getField(String name) {
+        return this.fields.get(name);
+    }
 
-        return false;
+    public void getFieldValue(String name) {
+        this.fields.get(name);
+    }
+
+    private void setIdField(PoFieldDefinition<T> poFieldDefinition) {
+        if (null == idField) {
+            this.idField = new Tuple2<>(poFieldDefinition.getName(), poFieldDefinition);
+        } else if (PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poFieldDefinition.getName()) && PoFieldDefinition.ID_FIELD_NAME.equals(this.idField.getItem1())) {
+            this.idField = new Tuple2<>(poFieldDefinition.getName(), poFieldDefinition);
+        } else if (!PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poFieldDefinition.getName()) && !PoFieldDefinition.ID_FIELD_NAME.equals(poFieldDefinition.getName())) {
+            this.idField = new Tuple2<>(poFieldDefinition.getName(), poFieldDefinition);
+        }
     }
 }

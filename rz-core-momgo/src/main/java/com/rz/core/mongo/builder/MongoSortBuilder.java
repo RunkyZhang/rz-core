@@ -35,7 +35,7 @@ public class MongoSortBuilder {
     }
 
     public List<Bson> build() {
-        return new ArrayList(this.sorts.values());
+        return new ArrayList<>(this.sorts.values());
     }
 
     public static MongoSortBuilder createByAppand(MongoSort mongoSort) {

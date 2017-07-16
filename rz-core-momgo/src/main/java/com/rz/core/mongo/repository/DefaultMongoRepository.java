@@ -1,5 +1,9 @@
 package com.rz.core.mongo.repository;
 
+import org.bson.conversions.Bson;
+
+import java.util.Map;
+
 /**
  * Created by renjie.zhang on 7/14/2017.
  */

@@ -22,7 +22,7 @@ public interface MongoRepository<T> {
 
     Map selectFirst(Bson filter, String... feildNames);
 
-    Map selectFirst(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... feildNames);
+    Map selectFirst(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames);
 
     T selectById(Object id);
 
@@ -34,7 +34,7 @@ public interface MongoRepository<T> {
 
     List<Map> select(Bson filter, String... feildNames);
 
-    List<Map> select(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... feildNames);
+    List<Map> select(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames);
 
     long count();
 
@@ -47,4 +47,10 @@ public interface MongoRepository<T> {
     long delete(Bson filter);
 
     long updateById(Object id, T po);
+
+    long updateById(Object id, Map<String, Object> values);
+
+    long update(Bson filter, Map<String, Object> values);
+
+    long update(Bson filter, T po);
 }

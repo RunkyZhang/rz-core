@@ -46,13 +46,13 @@ class SourcePool {
         return mongoCollections.get(tableName);
     }
 
-    public static PoDefinition getPoDefinition(Class<?> clazz) {
+    public static <T> PoDefinition<T> getPoDefinition(Class<T> clazz) {
         Assert.isNotNull(clazz, "clazz");
 
         if (!SourcePool.poDefinitionPool.containsKey(clazz)) {
             synchronized (SourcePool.poDefinitionPool) {
                 if (!SourcePool.poDefinitionPool.containsKey(clazz)) {
-                    SourcePool.poDefinitionPool.put(clazz, new PoDefinition(clazz));
+                    SourcePool.poDefinitionPool.put(clazz, new PoDefinition<>(clazz));
                 }
             }
         }
@@ -67,7 +67,7 @@ class SourcePool {
             synchronized (SourcePool.mongoSourcePool) {
                 if (!SourcePool.mongoSourcePool.containsKey(connectionString)) {
 
-                    SourcePool.mongoSourcePool.put(connectionString, new Tuple2(new MongoClient(new MongoClientURI(connectionString)), new HashMap<>()));
+                    SourcePool.mongoSourcePool.put(connectionString, new Tuple2<>(new MongoClient(new MongoClientURI(connectionString)), new HashMap<>()));
                 }
             }
         }
@@ -85,7 +85,7 @@ class SourcePool {
         if (!mongoDatabases.containsKey(databaseName)) {
             synchronized (mongoDatabases) {
                 if (!mongoDatabases.containsKey(databaseName)) {
-                    mongoDatabases.put(databaseName, new Tuple2(mongoClient.getDatabase(databaseName), new HashMap<>()));
+                    mongoDatabases.put(databaseName, new Tuple2<>(mongoClient.getDatabase(databaseName), new HashMap<>()));
                 }
             }
         }
