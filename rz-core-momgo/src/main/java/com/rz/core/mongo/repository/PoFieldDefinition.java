@@ -4,6 +4,7 @@ import com.mongodb.MongoException;
 import com.rz.core.Assert;
 import com.rz.core.mongo.annotation.MongoId;
 import com.rz.core.mongo.annotation.MongoIndex;
+import org.bson.types.ObjectId;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -27,6 +28,7 @@ public class PoFieldDefinition<T> {
     private Method getterMethod;
     private boolean isId;
     private boolean isIndex;
+    private boolean isObjectId;
     private boolean canSet;
     private boolean canGet;
 
@@ -72,29 +74,40 @@ public class PoFieldDefinition<T> {
 
         this.clazz = clazz;
         this.field = field;
+        this.field.setAccessible(true);
         this.name = field.getName();
         this.isId = false;
         this.isIndex = false;
+        this.isObjectId = false;
         this.canSet = false;
         this.canGet = false;
 
         try {
             this.setterMethod = new PropertyDescriptor(field.getName(), clazz).getWriteMethod();
+            this.setterMethod.setAccessible(true);
         } catch (IntrospectionException e) {
             e.printStackTrace();
         }
         try {
             this.getterMethod = new PropertyDescriptor(field.getName(), clazz).getReadMethod();
+            this.getterMethod.setAccessible(true);
         } catch (IntrospectionException e) {
             e.printStackTrace();
         }
 
+        if (PoFieldDefinition.ID_FIELD_NAME.equals(this.name) || PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(this.name)) {
+            this.isId = true;
+            this.isObjectId = this.field.getType() == ObjectId.class;
+
+            this.isIndex = true;
+        }
+
         Annotation[] annotations = field.getAnnotations();
         for (Annotation annotation : annotations) {
-            if (MongoId.class == annotation.annotationType()
-                    || PoFieldDefinition.ID_FIELD_NAME.equals(this.name)
-                    || PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(this.name)) {
+            if (MongoId.class == annotation.annotationType()) {
                 this.isId = true;
+                this.isObjectId = this.field.getType() == ObjectId.class;
+
                 this.isIndex = true;
             } else if (MongoIndex.class == annotation.annotationType()) {
                 this.isIndex = true;
@@ -111,19 +124,33 @@ public class PoFieldDefinition<T> {
             this.canSet = true;
             this.canGet = true;
         }
+
+        // TODO to update this logic
+        this.canSet = true;
+        this.canGet = true;
     }
 
     public Object getValue(Object instance) throws InvocationTargetException, IllegalAccessException {
         Assert.isNotNull(instance, "instance");
 
-        if (this.canGet) {
-            if (null == this.getterMethod) {
-                return this.field.get(instance);
-            } else {
-                return this.getterMethod.invoke(instance);
-            }
+        if (null == this.getterMethod) {
+            return this.field.get(instance);
         } else {
-            throw new MongoException(String.format("The field [%s] cannot get value.", this.name));
+            return this.getterMethod.invoke(instance);
         }
+    }
+
+    public void setValue(Object instance, Object value) throws IllegalAccessException, InvocationTargetException {
+        Assert.isNotNull(instance, "instance");
+
+        if (null == this.setterMethod) {
+            this.field.set(instance, value);
+        } else {
+            this.setterMethod.invoke(instance, value);
+        }
+    }
+
+    public boolean isObjectId() {
+        return isObjectId;
     }
 }

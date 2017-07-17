@@ -10,6 +10,8 @@ import java.util.Map;
  * Created by renjie.zhang on 7/14/2017.
  */
 public interface ShardingMongoRepository<TPo, TSharding> {
+    PoDefinition<TPo> getPoDefinition();
+
     void insert(TSharding parameter, TPo po);
 
     void insert(TSharding parameter, List<TPo> pos);

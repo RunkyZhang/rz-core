@@ -8,18 +8,17 @@ import com.rz.core.Assert;
 import com.rz.core.Tuple2;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by renjie.zhang on 7/11/2017.
  */
 class SourcePool {
-    private static Map<String, Tuple2<MongoClient, Map<String, Tuple2<MongoDatabase, Map<String, MongoCollection>>>>> mongoSourcePool = new HashMap<>();
+    private static Map<Integer, Tuple2<MongoClient, Map<String, Tuple2<MongoDatabase, Map<String, MongoCollection>>>>> mongoSourcePool = new HashMap<>();
     private static Map<Class<?>, PoDefinition> poDefinitionPool = new HashMap<>();
 
     public static MongoClient getMongoClient(String connectionString) {
-
-
         return SourcePool.getOrBuildMongoClient(connectionString).getItem1();
     }
 
@@ -30,7 +29,7 @@ class SourcePool {
     public static MongoCollection getMongoCollection(String connectionString, String databaseName, String tableName) {
         Assert.isNotNull(tableName, "tableName");
 
-        Tuple2<MongoDatabase, Map<String, MongoCollection>> tuple = getOrBuildMongoDatabase(connectionString, databaseName);
+        Tuple2<MongoDatabase, Map<String, MongoCollection>> tuple = SourcePool.getOrBuildMongoDatabase(connectionString, databaseName);
 
         MongoDatabase mongoDatabase = tuple.getItem1();
         Map<String, MongoCollection> mongoCollections = tuple.getItem2();
@@ -63,16 +62,17 @@ class SourcePool {
     private static Tuple2<MongoClient, Map<String, Tuple2<MongoDatabase, Map<String, MongoCollection>>>> getOrBuildMongoClient(String connectionString) {
         Assert.isNotNull(connectionString, "connectionString");
 
-        if (!SourcePool.mongoSourcePool.containsKey(connectionString)) {
+        MongoClientURI mongoClientUri = new MongoClientURI(connectionString);
+        int hashCode = mongoClientUri.getHosts().hashCode();
+        if (!SourcePool.mongoSourcePool.containsKey(hashCode)) {
             synchronized (SourcePool.mongoSourcePool) {
-                if (!SourcePool.mongoSourcePool.containsKey(connectionString)) {
-
-                    SourcePool.mongoSourcePool.put(connectionString, new Tuple2<>(new MongoClient(new MongoClientURI(connectionString)), new HashMap<>()));
+                if (!SourcePool.mongoSourcePool.containsKey(hashCode)) {
+                    SourcePool.mongoSourcePool.put(hashCode, new Tuple2<>(new MongoClient(mongoClientUri), new HashMap<>()));
                 }
             }
         }
 
-        return SourcePool.mongoSourcePool.get(connectionString);
+        return SourcePool.mongoSourcePool.get(hashCode);
     }
 
     private static Tuple2<MongoDatabase, Map<String, MongoCollection>> getOrBuildMongoDatabase(String connectionString, String databaseName) {

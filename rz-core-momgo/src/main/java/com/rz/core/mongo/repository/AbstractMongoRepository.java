@@ -66,6 +66,11 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     }
 
     @Override
+    public PoDefinition<T> getPoDefinition(){
+        return this.poDefinition;
+    }
+
+    @Override
     public void insert(T po) {
         this.executant.insert(this.getMongoCollection(), po);
     }

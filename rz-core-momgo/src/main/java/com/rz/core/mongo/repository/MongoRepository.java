@@ -10,6 +10,8 @@ import java.util.Map;
  * Created by renjie.zhang on 7/14/2017.
  */
 public interface MongoRepository<T> {
+    PoDefinition<T> getPoDefinition();
+
     void insert(T po);
 
     void insert(List<T> pos);

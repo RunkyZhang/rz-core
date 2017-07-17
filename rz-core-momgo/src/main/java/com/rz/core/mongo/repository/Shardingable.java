@@ -9,4 +9,10 @@ public interface Shardingable<T> {
     String buildDatabaseName(T parameter);
 
     String buildTableName(T parameter);
+
+    String getRawConnectionString();
+
+    String getRawDatabaseName();
+
+    String getRawTableName();
 }

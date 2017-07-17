@@ -3,7 +3,6 @@ package com.rz.core.mongo.repository;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.InsertOneOptions;
 import com.rz.core.Assert;
 import com.rz.core.mongo.builder.MongoSort;
 import org.bson.conversions.Bson;
@@ -15,23 +14,11 @@ import java.util.Map;
  * Created by renjie.zhang on 7/10/2017.
  */
 public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements Shardingable<TSharding>, ShardingMongoRepository<TPo, TSharding> {
-    private PoDefinition<TPo> poDefinition;
+    protected PoDefinition<TPo> poDefinition;
     protected String rawConnectionString;
     protected String rawDatabaseName;
     protected String rawTableName;
     protected Executant<TPo> executant;
-
-    protected String getRawConnectionString() {
-        return this.rawConnectionString;
-    }
-
-    protected String getRawDatabaseName() {
-        return this.rawDatabaseName;
-    }
-
-    protected String getRawTableName() {
-        return this.rawTableName;
-    }
 
     protected MongoClient getMongoClient(TSharding parameter) {
         String connectionString = this.buildConnectionString(parameter);
@@ -65,6 +52,26 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
         this.rawDatabaseName = rawDatabaseName;
         this.rawTableName = rawTableName;
         this.executant = new Executant<>(this.poDefinition);
+    }
+
+    @Override
+    public PoDefinition<TPo> getPoDefinition(){
+        return this.poDefinition;
+    }
+
+    @Override
+    public String getRawConnectionString() {
+        return this.rawConnectionString;
+    }
+
+    @Override
+    public String getRawDatabaseName() {
+        return this.rawDatabaseName;
+    }
+
+    @Override
+    public String getRawTableName() {
+        return this.rawTableName;
     }
 
     @Override

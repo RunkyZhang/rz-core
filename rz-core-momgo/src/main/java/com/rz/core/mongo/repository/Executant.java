@@ -35,7 +35,7 @@ class Executant<T> {
         InsertOneOptions insertOneOptions = new InsertOneOptions();
         insertOneOptions.bypassDocumentValidation(false);
 
-        mongoCollection.insertOne(BsonMapper.toDocument(po), insertOneOptions);
+        mongoCollection.insertOne(BsonMapper.toDocument(po, false), insertOneOptions);
     }
 
     public void insert(MongoCollection mongoCollection, List<T> pos) {
@@ -47,7 +47,7 @@ class Executant<T> {
         InsertManyOptions insertManyOptions = new InsertManyOptions();
         insertManyOptions.bypassDocumentValidation(false);
 
-        mongoCollection.insertMany(BsonMapper.toDocument(pos), insertManyOptions);
+        mongoCollection.insertMany(BsonMapper.toDocument(pos, false), insertManyOptions);
     }
 
     public List<T> selectAll(MongoCollection mongoCollection) {
@@ -180,7 +180,21 @@ class Executant<T> {
 
 
     public long updateById(MongoCollection mongoCollection, Object id, Map<String, Object> values) {
-        return this.update(mongoCollection, Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id), values);
+        Assert.isNotNull(mongoCollection, "mongoCollection");
+        if (RZHelper.isEmptyCollection(values)) {
+            return 0;
+        }
+
+        UpdateOptions updateOptions = new UpdateOptions();
+        UpdateResult updateResult = mongoCollection.updateOne(
+                this.formatFilter(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id)),
+                new Document("$set", BsonMapper.toDocument(values, this.poDefinition.getPoClazz())),
+                updateOptions);
+        if (null == updateResult) {
+            return 0;
+        }
+
+        return updateResult.getModifiedCount();
     }
 
     public long update(MongoCollection mongoCollection, Bson filter, Map<String, Object> values) {
@@ -190,9 +204,9 @@ class Executant<T> {
         }
 
         UpdateOptions updateOptions = new UpdateOptions();
-        UpdateResult updateResult = mongoCollection.updateOne(
+        UpdateResult updateResult = mongoCollection.updateMany(
                 this.formatFilter(filter),
-                new Document("$set", BsonMapper.toDocument(values, this.poDefinition.getClass())),
+                new Document("$set", BsonMapper.toDocument(values, this.poDefinition.getPoClazz())),
                 updateOptions);
         if (null == updateResult) {
             return 0;
@@ -202,7 +216,21 @@ class Executant<T> {
     }
 
     public long updateById(MongoCollection mongoCollection, Object id, T po) {
-        return this.update(mongoCollection, Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id), po);
+        Assert.isNotNull(mongoCollection, "mongoCollection");
+        if (null == po) {
+            return 0;
+        }
+
+        UpdateOptions updateOptions = new UpdateOptions();
+        UpdateResult updateResult = mongoCollection.updateOne(
+                this.formatFilter(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id)),
+                new Document("$set", BsonMapper.toDocument(po, true)),
+                updateOptions);
+        if (null == updateResult) {
+            return 0;
+        }
+
+        return updateResult.getModifiedCount();
     }
 
     public long update(MongoCollection mongoCollection, Bson filter, T po) {
@@ -212,9 +240,9 @@ class Executant<T> {
         }
 
         UpdateOptions updateOptions = new UpdateOptions();
-        UpdateResult updateResult = mongoCollection.updateOne(
+        UpdateResult updateResult = mongoCollection.updateMany(
                 this.formatFilter(filter),
-                new Document("$set", BsonMapper.toDocument(po)),
+                new Document("$set", BsonMapper.toDocument(po, true)),
                 updateOptions);
         if (null == updateResult) {
             return 0;

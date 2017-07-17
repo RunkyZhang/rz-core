@@ -38,7 +38,7 @@ public class MongoRepositoryBuilder<T> {
         return this;
     }
 
-    public MongoRepositoryBuilder setTableName(String tableName) {
+    public MongoRepositoryBuilder<T> setTableName(String tableName) {
         Assert.isNotBlank(tableName, "tableName");
 
         this.tableName = tableName;
@@ -58,10 +58,10 @@ public class MongoRepositoryBuilder<T> {
             this.tableName = this.clazz.getName();
         }
 
-        return new DefaultMongoRepository(this.clazz, this.connectionString, this.databaseName, this.tableName);
+        return new DefaultMongoRepository<>(this.clazz, this.connectionString, this.databaseName, this.tableName);
     }
 
     public static <T> MongoRepositoryBuilder<T> create(Class<T> clazz) {
-        return new MongoRepositoryBuilder<T>(clazz);
+        return new MongoRepositoryBuilder<>(clazz);
     }
 }

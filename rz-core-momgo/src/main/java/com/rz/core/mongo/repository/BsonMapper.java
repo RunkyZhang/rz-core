@@ -5,6 +5,7 @@ import com.rz.core.RZHelper;
 import com.rz.core.mongo.builder.MongoSort;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -22,12 +23,31 @@ class BsonMapper {
 
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
 
+
         if (document.containsKey(PoFieldDefinition.MONGO_ID_FIELD_NAME) && !document.containsKey(poDefinition.getIdField().getItem1())) {
-            document.put(poDefinition.getIdField().getItem1(), document.get("_id"));
+            document.put(poDefinition.getIdField().getItem1(), document.get(PoFieldDefinition.MONGO_ID_FIELD_NAME));
+            document.remove(PoFieldDefinition.MONGO_ID_FIELD_NAME);
         }
+        ObjectId objectId = null;
+        Object id = document.get(poDefinition.getIdField().getItem1());
+        if (id instanceof ObjectId) {
+            if (poDefinition.getIdField().getItem2().isObjectId()) {
+                objectId = (ObjectId) id;
+            }
+        }
+
         String json = com.mongodb.util.JSON.serialize(document);
 
-        return com.alibaba.fastjson.JSON.parseObject(json, clazz);
+        T po = com.alibaba.fastjson.JSON.parseObject(json, clazz);
+        if (null != objectId) {
+            try {
+                poDefinition.getIdField().getItem2().setValue(po, objectId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return po;
     }
 
     public static <T> List<T> toObject(Iterator<Document> documents, Class<T> clazz) {
@@ -92,7 +112,7 @@ class BsonMapper {
         return maps;
     }
 
-    public static <T> Document toDocument(T po) {
+    public static <T> Document toDocument(T po, boolean removedId) {
         if (null == po) {
             return null;
         }
@@ -100,17 +120,17 @@ class BsonMapper {
         String json = com.alibaba.fastjson.JSON.toJSONString(po);
         Document document = Document.parse(json);
 
-        return BsonMapper.formatId(document, po.getClass());
+        return BsonMapper.formatId(document, po.getClass(), removedId);
     }
 
-    public static <T> List<Document> toDocument(List<T> pos) {
+    public static <T> List<Document> toDocument(List<T> pos, boolean removedId) {
         if (null == pos) {
             return null;
         }
 
         List<Document> documents = new ArrayList<>();
         for (Object po : pos) {
-            Document document = BsonMapper.toDocument(po);
+            Document document = BsonMapper.toDocument(po, removedId);
             if (null != document) {
                 documents.add(document);
             }
@@ -127,9 +147,11 @@ class BsonMapper {
             return new Document();
         }
 
-        Document document = new Document(values);
+        Document document = new Document();
+        document.putAll(values);
         PoDefinition poDefinition = SourcePool.getPoDefinition(clazz);
         String idFieldName = (String) poDefinition.getIdField().getItem1();
+        document.remove(PoFieldDefinition.MONGO_ID_FIELD_NAME);
         document.remove(idFieldName);
         List<String> removedFieldNames = values.keySet().stream().filter(o -> !poDefinition.containsField(o)).collect(Collectors.toList());
         for (String removedFieldName : removedFieldNames) {
@@ -139,7 +161,7 @@ class BsonMapper {
         return document;
     }
 
-    public static <T> Document formatId(Document document, Class<T> clazz) {
+    public static <T> Document formatId(Document document, Class<T> clazz, boolean removedId) {
         if (null == document) {
             return null;
         }
@@ -147,9 +169,14 @@ class BsonMapper {
 
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
 
-        if (document.containsKey(poDefinition.getIdField().getItem1()) && !PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poDefinition.getIdField().getItem1())) {
-            document.put(PoFieldDefinition.MONGO_ID_FIELD_NAME, document.get(poDefinition.getIdField().getItem1()));
+        if (removedId) {
+            document.remove(PoFieldDefinition.MONGO_ID_FIELD_NAME);
             document.remove(poDefinition.getIdField().getItem1());
+        } else {
+            if (document.containsKey(poDefinition.getIdField().getItem1()) && !PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poDefinition.getIdField().getItem1())) {
+                document.put(PoFieldDefinition.MONGO_ID_FIELD_NAME, document.get(poDefinition.getIdField().getItem1()));
+                document.remove(poDefinition.getIdField().getItem1());
+            }
         }
 
         return document;
