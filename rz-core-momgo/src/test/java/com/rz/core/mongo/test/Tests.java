@@ -36,7 +36,9 @@ public class Tests {
         try {
 //            tests.test();
 
-            tests.testUpdate();
+            //tests.testMax();
+            tests.testIncrease();
+            //tests.testUpdate();
             //tests.testInstert();
             //tests.testSelect();
             //tests.testCount();
@@ -52,6 +54,27 @@ public class Tests {
                 ConfigApplicationPo.class);
 
         System.out.println(JSON.toJSONString(buildConfigApplication("asdasd")));
+    }
+
+    private void testIncrease() {
+        if (Tests.isSharding) {
+            Date now = new Date();
+            ConfigOperationLogPo configOperationLogPo = Tests.shardingMongoRepository.selectById(now, new ObjectId("596c5d7ae42a285f94f08c8e"));
+            System.out.println(configOperationLogPo.getCreatedTime().getTime());
+            System.out.println(Tests.shardingMongoRepository.increaseById(now, configOperationLogPo.getId(), "createdTime", -10));
+        } else {
+
+        }
+    }
+
+    private void testMax() {
+        if (Tests.isSharding) {
+            Date now = new Date();
+            System.out.println(Tests.shardingMongoRepository.max(now, "nodeValue"));
+            System.out.println(Tests.shardingMongoRepository.min(now, "nodeValue"));
+        } else {
+
+        }
     }
 
     private void testInstert() {
@@ -130,8 +153,6 @@ public class Tests {
 
         configApplicationPo = mongoRepository.selectFirst(
                 bson,
-                20,
-                20,
                 Arrays.asList(
                         new MongoSort("createdTime", true),
                         new MongoSort("id", false)));
@@ -147,8 +168,6 @@ public class Tests {
 
         Map map = mongoRepository.selectFirst(
                 bson,
-                20,
-                20,
                 Arrays.asList(
                         new MongoSort("createdTime", true),
                         new MongoSort("id", false)),

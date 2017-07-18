@@ -66,7 +66,7 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     }
 
     @Override
-    public PoDefinition<T> getPoDefinition(){
+    public PoDefinition<T> getPoDefinition() {
         return this.poDefinition;
     }
 
@@ -96,8 +96,8 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     }
 
     @Override
-    public T selectFirst(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts) {
-        return this.executant.selectFirst(this.getMongoCollection(), filter, skip, limit, mongoSorts);
+    public T selectFirst(Bson filter, List<MongoSort> mongoSorts) {
+        return this.executant.selectFirst(this.getMongoCollection(), filter, mongoSorts);
     }
 
     @Override
@@ -111,8 +111,18 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     }
 
     @Override
-    public Map selectFirst(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... feildNames) {
-        return this.executant.selectFirst(this.getMongoCollection(), filter, skip, limit, mongoSorts, feildNames);
+    public Object max(String fieldName) {
+        return this.executant.max(this.getMongoCollection(), fieldName);
+    }
+
+    @Override
+    public Object min(String fieldName) {
+        return this.executant.min(this.getMongoCollection(), fieldName);
+    }
+
+    @Override
+    public Map selectFirst(Bson filter, List<MongoSort> mongoSorts, String... feildNames) {
+        return this.executant.selectFirst(this.getMongoCollection(), filter, mongoSorts, feildNames);
     }
 
     @Override
@@ -133,21 +143,6 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     @Override
     public List<Map> select(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... feildNames) {
         return this.executant.select(this.getMongoCollection(), filter, skip, limit, mongoSorts, feildNames);
-    }
-
-    @Override
-    public long count() {
-        return this.executant.count(this.getMongoCollection());
-    }
-
-    @Override
-    public long countById(Object id) {
-        return this.executant.countById(this.getMongoCollection(), id);
-    }
-
-    @Override
-    public long count(Bson filter) {
-        return this.executant.count(this.getMongoCollection(), filter);
     }
 
     @Override
@@ -178,5 +173,30 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     @Override
     public long update(Bson filter, Map<String, Object> values) {
         return this.executant.update(this.getMongoCollection(), filter, values);
+    }
+
+    @Override
+    public Object increaseById(Object id, String fieldName, int number) {
+        return this.executant.increaseById(this.getMongoCollection(), id, fieldName, number);
+    }
+
+    @Override
+    public Object increase(String fieldName, Bson filter, int number) {
+        return this.executant.increase(this.getMongoCollection(), filter, fieldName, number);
+    }
+
+    @Override
+    public long count() {
+        return this.executant.count(this.getMongoCollection());
+    }
+
+    @Override
+    public long countById(Object id) {
+        return this.executant.countById(this.getMongoCollection(), id);
+    }
+
+    @Override
+    public long count(Bson filter) {
+        return this.executant.count(this.getMongoCollection(), filter);
     }
 }

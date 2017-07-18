@@ -55,7 +55,7 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
     }
 
     @Override
-    public PoDefinition<TPo> getPoDefinition(){
+    public PoDefinition<TPo> getPoDefinition() {
         return this.poDefinition;
     }
 
@@ -109,8 +109,18 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
     }
 
     @Override
-    public TPo selectFirst(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts) {
-        return this.executant.selectFirst(this.getMongoCollection(parameter), filter, skip, limit, mongoSorts);
+    public Object max(TSharding parameter, String fieldName) {
+        return this.executant.max(this.getMongoCollection(parameter), fieldName);
+    }
+
+    @Override
+    public Object min(TSharding parameter, String fieldName) {
+        return this.executant.min(this.getMongoCollection(parameter), fieldName);
+    }
+
+    @Override
+    public TPo selectFirst(TSharding parameter, Bson filter, List<MongoSort> mongoSorts) {
+        return this.executant.selectFirst(this.getMongoCollection(parameter), filter, mongoSorts);
     }
 
     @Override
@@ -124,8 +134,8 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
     }
 
     @Override
-    public Map selectFirst(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames) {
-        return this.executant.selectFirst(this.getMongoCollection(parameter), filter, skip, limit, mongoSorts, fieldNames);
+    public Map selectFirst(TSharding parameter, Bson filter, List<MongoSort> mongoSorts, String... fieldNames) {
+        return this.executant.selectFirst(this.getMongoCollection(parameter), filter, mongoSorts, fieldNames);
     }
 
     @Override
@@ -146,21 +156,6 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
     @Override
     public List<Map> select(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames) {
         return this.executant.select(this.getMongoCollection(parameter), filter, skip, limit, mongoSorts, fieldNames);
-    }
-
-    @Override
-    public long count(TSharding parameter) {
-        return this.executant.count(this.getMongoCollection(parameter));
-    }
-
-    @Override
-    public long countById(TSharding parameter, Object id) {
-        return this.executant.countById(this.getMongoCollection(parameter), id);
-    }
-
-    @Override
-    public long count(TSharding parameter, Bson filter) {
-        return this.executant.count(this.getMongoCollection(parameter), filter);
     }
 
     @Override
@@ -191,5 +186,30 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
     @Override
     public long update(TSharding parameter, Bson filter, Map<String, Object> values) {
         return this.executant.update(this.getMongoCollection(parameter), filter, values);
+    }
+
+    @Override
+    public Object increaseById(TSharding parameter, Object id, String fieldName, int number) {
+        return this.executant.increaseById(this.getMongoCollection(parameter), id, fieldName, number);
+    }
+
+    @Override
+    public Object increase(TSharding parameter, Bson filter, String fieldName, int number) {
+        return this.executant.increase(this.getMongoCollection(parameter), filter, fieldName, number);
+    }
+
+    @Override
+    public long count(TSharding parameter) {
+        return this.executant.count(this.getMongoCollection(parameter));
+    }
+
+    @Override
+    public long countById(TSharding parameter, Object id) {
+        return this.executant.countById(this.getMongoCollection(parameter), id);
+    }
+
+    @Override
+    public long count(TSharding parameter, Bson filter) {
+        return this.executant.count(this.getMongoCollection(parameter), filter);
     }
 }

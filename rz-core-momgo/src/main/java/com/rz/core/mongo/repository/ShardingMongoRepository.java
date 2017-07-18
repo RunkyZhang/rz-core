@@ -2,6 +2,7 @@ package com.rz.core.mongo.repository;
 
 import com.rz.core.mongo.builder.MongoSort;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 import java.util.Map;
@@ -18,31 +19,29 @@ public interface ShardingMongoRepository<TPo, TSharding> {
 
     List<TPo> selectAll(TSharding parameter);
 
+    TPo selectById(TSharding parameter, Object id);
+
     TPo selectFirst(TSharding parameter, Bson filter);
 
-    TPo selectFirst(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts);
+    TPo selectFirst(TSharding parameter, Bson filter, List<MongoSort> mongoSorts);
+
+    Map selectById(TSharding parameter, Object id, String... fieldNames);
 
     Map selectFirst(TSharding parameter, Bson filter, String... fieldNames);
 
-    Map selectFirst(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames);
+    Object max(TSharding parameter, String fieldName);
 
-    TPo selectById(TSharding parameter, Object id);
+    Object min(TSharding parameter, String fieldName);
+
+    Map selectFirst(TSharding parameter, Bson filter, List<MongoSort> mongoSorts, String... fieldNames);
 
     List<TPo> select(TSharding parameter, Bson filter);
 
     List<TPo> select(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts);
 
-    Map selectById(TSharding parameter, Object id, String... fieldNames);
-
     List<Map> select(TSharding parameter, Bson filter, String... fieldNames);
 
     List<Map> select(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames);
-
-    long count(TSharding parameter);
-
-    long countById(TSharding parameter, Object id);
-
-    long count(TSharding parameter, Bson filter);
 
     long deleteById(TSharding parameter, Object id);
 
@@ -55,4 +54,14 @@ public interface ShardingMongoRepository<TPo, TSharding> {
     long update(TSharding parameter, Bson filter, Map<String, Object> values);
 
     long update(TSharding parameter, Bson filter, TPo po);
+
+    Object increaseById(TSharding parameter, Object id, String fieldName, int number);
+
+    Object increase(TSharding parameter, Bson filter, String fieldName, int number);
+
+    long count(TSharding parameter);
+
+    long countById(TSharding parameter, Object id);
+
+    long count(TSharding parameter, Bson filter);
 }

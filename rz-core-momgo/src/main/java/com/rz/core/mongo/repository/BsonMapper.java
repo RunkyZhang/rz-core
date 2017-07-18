@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,12 +66,14 @@ class BsonMapper {
         return pos;
     }
 
-    public static <T> Map toMap(Document document, Class<T> clazz, String[] fieldNames) {
-        Map<String, Object> map = new HashMap<>();
-        if (RZHelper.isEmptyCollection(fieldNames)) {
-            return map;
+    public static <T> Map toMap(Document document, Class<T> clazz, String... fieldNames) {
+        if (null == document) {
+            return null;
         }
+        Assert.isNotNull(clazz, "clazz");
+        Assert.isNotEmpty(fieldNames, "fieldNames");
 
+        Map<String, Object> map = new HashMap<>();
         T po = BsonMapper.toObject(document, clazz);
 
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
@@ -92,16 +93,14 @@ class BsonMapper {
         return map;
     }
 
-    public static <T> List<Map> toMap(Iterator<Document> documents, Class<T> clazz, String[] fieldNames) {
-        List<Map> maps = new ArrayList<>();
-        if (RZHelper.isEmptyCollection(fieldNames)) {
-            return maps;
-        }
+    public static <T> List<Map> toMap(Iterator<Document> documents, Class<T> clazz, String... fieldNames) {
         if (null == documents) {
             return null;
         }
         Assert.isNotNull(clazz, "clazz");
+        Assert.isNotEmpty(fieldNames, "fieldNames");
 
+        List<Map> maps = new ArrayList<>();
         while (documents.hasNext()) {
             Map map = BsonMapper.toMap(documents.next(), clazz, fieldNames);
             if (null != map) {
@@ -143,8 +142,6 @@ class BsonMapper {
         Assert.isNotNull(clazz, "clazz");
         if (null == values) {
             return null;
-        } else if (values.isEmpty()) {
-            return new Document();
         }
 
         Document document = new Document();
@@ -182,15 +179,15 @@ class BsonMapper {
         return document;
     }
 
-    public static <T> String[] formatId(String[] feildNames, Class<T> clazz) {
-        if (null == feildNames) {
+    public static <T> String[] formatId(String[] fieldNames, Class<T> clazz) {
+        if (null == fieldNames) {
             return null;
         }
         Assert.isNotNull(clazz, "clazz");
 
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
 
-        Set<String> set = new HashSet<>(Arrays.asList(feildNames));
+        Set<String> set = new HashSet<>(Arrays.asList(fieldNames));
         if (set.contains(poDefinition.getIdField().getItem1()) && !PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poDefinition.getIdField().getItem1())) {
             set.add(PoFieldDefinition.MONGO_ID_FIELD_NAME);
             set.remove(poDefinition.getIdField().getItem1());
