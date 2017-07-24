@@ -121,8 +121,13 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     }
 
     @Override
-    public Map selectFirst(Bson filter, List<MongoSort> mongoSorts, String... feildNames) {
-        return this.executant.selectFirst(this.getMongoCollection(), filter, mongoSorts, feildNames);
+    public Map selectFirst(Bson filter, List<MongoSort> mongoSorts, String... fieldNames) {
+        return this.executant.selectFirst(this.getMongoCollection(), filter, mongoSorts, fieldNames);
+    }
+
+    @Override
+    public List<T> selectByIds(List<Object> Ids) {
+        return this.executant.selectByIds(this.getMongoCollection(), Ids);
     }
 
     @Override
@@ -136,13 +141,18 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     }
 
     @Override
-    public List<Map> select(Bson filter, String... feildNames) {
-        return this.executant.select(this.getMongoCollection(), filter, feildNames);
+    public List<Map> selectByIds(List<Object> ids, String... fieldNames) {
+        return this.executant.selectByIds(this.getMongoCollection(), ids, fieldNames);
     }
 
     @Override
-    public List<Map> select(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... feildNames) {
-        return this.executant.select(this.getMongoCollection(), filter, skip, limit, mongoSorts, feildNames);
+    public List<Map> select(Bson filter, String... fieldNames) {
+        return this.executant.select(this.getMongoCollection(), filter, fieldNames);
+    }
+
+    @Override
+    public List<Map> select(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames) {
+        return this.executant.select(this.getMongoCollection(), filter, skip, limit, mongoSorts, fieldNames);
     }
 
     @Override
@@ -198,5 +208,10 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     @Override
     public long count(Bson filter) {
         return this.executant.count(this.getMongoCollection(), filter);
+    }
+
+    @Override
+    public void createIndex(String fieldName, boolean isAscending) {
+        this.executant.createIndex(this.getMongoCollection(), fieldName, isAscending);
     }
 }

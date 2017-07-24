@@ -2,7 +2,6 @@ package com.rz.core.mongo.repository;
 
 import com.rz.core.mongo.builder.MongoSort;
 import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 
 import java.util.List;
 import java.util.Map;
@@ -35,9 +34,13 @@ public interface ShardingMongoRepository<TPo, TSharding> {
 
     Map selectFirst(TSharding parameter, Bson filter, List<MongoSort> mongoSorts, String... fieldNames);
 
+    List<TPo> selectByIds(TSharding parameter, List<Object> ids);
+
     List<TPo> select(TSharding parameter, Bson filter);
 
     List<TPo> select(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts);
+
+    List<Map> selectByIds(TSharding parameter, List<Object> ids, String... fieldNames);
 
     List<Map> select(TSharding parameter, Bson filter, String... fieldNames);
 
@@ -64,4 +67,7 @@ public interface ShardingMongoRepository<TPo, TSharding> {
     long countById(TSharding parameter, Object id);
 
     long count(TSharding parameter, Bson filter);
+
+    void createIndex(TSharding parameter, String fieldName, boolean isAscending);
 }
+

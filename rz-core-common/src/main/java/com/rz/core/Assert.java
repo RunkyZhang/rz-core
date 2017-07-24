@@ -21,14 +21,14 @@ public class Assert {
         }
     }
 
-    public static void isNotEmpty(Collection<?> value, String name) {
+    public static void isNotEmpty(Collection value, String name) {
         if (null == value || value.isEmpty()) {
             String errorMessage = "The parameter [" + name + "] value is empty.";
             throw Assert.buildException(errorMessage);
         }
     }
 
-    public static void isNotEmpty(Map<?, ?> value, String name) {
+    public static void isNotEmpty(Map value, String name) {
         if (null == value || value.isEmpty()) {
             String errorMessage = "The parameter [" + name + "] value is empty.";
             throw Assert.buildException(errorMessage);

@@ -13,7 +13,8 @@ import java.util.Map;
 /**
  * Created by renjie.zhang on 7/10/2017.
  */
-public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements Shardingable<TSharding>, ShardingMongoRepository<TPo, TSharding> {
+public abstract class AbstractShardingMongoRepository<TPo, TSharding>
+        implements Shardingable<TSharding>, ShardingMongoRepository<TPo, TSharding> {
     protected PoDefinition<TPo> poDefinition;
     protected String rawConnectionString;
     protected String rawDatabaseName;
@@ -139,6 +140,11 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
     }
 
     @Override
+    public List<TPo> selectByIds(TSharding parameter, List<Object> Ids) {
+        return this.executant.selectByIds(this.getMongoCollection(parameter), Ids);
+    }
+
+    @Override
     public List<TPo> select(TSharding parameter, Bson filter) {
         return this.executant.select(this.getMongoCollection(parameter), filter);
     }
@@ -146,6 +152,11 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
     @Override
     public List<TPo> select(TSharding parameter, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts) {
         return this.executant.select(this.getMongoCollection(parameter), filter, skip, limit, mongoSorts);
+    }
+
+    @Override
+    public List<Map> selectByIds(TSharding parameter, List<Object> ids, String... fieldNames) {
+        return this.executant.selectByIds(this.getMongoCollection(parameter), ids, fieldNames);
     }
 
     @Override
@@ -211,5 +222,10 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding> implements
     @Override
     public long count(TSharding parameter, Bson filter) {
         return this.executant.count(this.getMongoCollection(parameter), filter);
+    }
+
+    @Override
+    public void createIndex(TSharding parameter, String fieldName, boolean isAscending) {
+        this.executant.createIndex(this.getMongoCollection(parameter), fieldName, isAscending);
     }
 }

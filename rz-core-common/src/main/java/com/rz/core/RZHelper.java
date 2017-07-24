@@ -57,7 +57,7 @@ public abstract class RZHelper {
         return false;
     }
 
-    public static boolean isEmptyCollection(Collection<?> collection) {
+    public static boolean isEmptyCollection(Collection collection) {
         if (null == collection || collection.isEmpty()) {
             return true;
         } else {
@@ -65,7 +65,7 @@ public abstract class RZHelper {
         }
     }
 
-    public static boolean isEmptyCollection(Map<?, ?> map) {
+    public static boolean isEmptyCollection(Map map) {
         if (null == map || map.isEmpty()) {
             return true;
         } else {

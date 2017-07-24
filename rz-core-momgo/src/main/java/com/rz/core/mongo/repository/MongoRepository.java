@@ -18,11 +18,15 @@ public interface MongoRepository<T> {
 
     List<T> selectAll();
 
+    T selectById(Object id);
+
     T selectFirst(Bson filter);
 
     T selectFirst(Bson filter, List<MongoSort> mongoSorts);
 
-    Map selectFirst(Bson filter, String... feildNames);
+    Map selectById(Object id, String... fieldNames);
+
+    Map selectFirst(Bson filter, String... fieldNames);
 
     Object max(String fieldName);
 
@@ -30,15 +34,15 @@ public interface MongoRepository<T> {
 
     Map selectFirst(Bson filter, List<MongoSort> mongoSorts, String... fieldNames);
 
-    T selectById(Object id);
+    List<T> selectByIds(List<Object> ids);
 
     List<T> select(Bson filter);
 
     List<T> select(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts);
 
-    Map selectById(Object id, String... feildNames);
+    List<Map> selectByIds(List<Object> ids, String... fieldNames);
 
-    List<Map> select(Bson filter, String... feildNames);
+    List<Map> select(Bson filter, String... fieldNames);
 
     List<Map> select(Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames);
 
@@ -63,4 +67,6 @@ public interface MongoRepository<T> {
     long countById(Object id);
 
     long count(Bson filter);
+
+    void createIndex(String fieldName, boolean isAscending);
 }
