@@ -43,8 +43,8 @@ public class Tests {
 
             //tests.testMax();
             //tests.testIncrease();
-            //tests.testUpdate();
-            tests.testInstert();
+            tests.testUpdate();
+            //tests.testInstert();
             //tests.testSelect();
             //tests.testCount();
             //tests.testDelete();
@@ -116,6 +116,11 @@ public class Tests {
     }
 
     private void testUpdate() {
+        SpecialIdTestModel specialIdTestModel = this.buildSpecialIdTestModel(0);
+        specialIdTestModel.setKey("11111111");
+        specialIdTestModelRepository.updateOrInsertById(new Date(), specialIdTestModel.getKey(), specialIdTestModel);
+        System.out.println(specialIdTestModel.getKey());
+
 //        if (Tests.isSharding) {
 //            ConfigOperationLogPo configOperationLogPo = new ConfigOperationLogPo();
 //            configOperationLogPo.setComment(String.valueOf(new Date().getTime()));

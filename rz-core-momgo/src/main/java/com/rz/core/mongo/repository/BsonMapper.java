@@ -1,5 +1,6 @@
 package com.rz.core.mongo.repository;
 
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.rz.core.Assert;
 import com.rz.core.RZHelper;
 import com.rz.core.mongo.builder.MongoSort;
@@ -116,7 +117,7 @@ class BsonMapper {
             return null;
         }
 
-        String json = com.alibaba.fastjson.JSON.toJSONString(po);
+        String json = com.alibaba.fastjson.JSON.toJSONString(po, SerializerFeature.DisableCircularReferenceDetect);
         Document document = Document.parse(json);
 
         return BsonMapper.formatId(document, po.getClass(), removedId);

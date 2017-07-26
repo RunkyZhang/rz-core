@@ -75,10 +75,10 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
         this.executant.insert(this.getMongoCollection(), po);
     }
 
-    @Override
-    public void insert(List<T> pos) {
-        this.executant.insert(this.getMongoCollection(), pos);
-    }
+//    @Override
+//    public void insert(List<T> pos) {
+//        this.executant.insert(this.getMongoCollection(), pos);
+//    }
 
     @Override
     public List<T> selectAll() {
@@ -166,16 +166,6 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     }
 
     @Override
-    public long updateById(Object id, T po) {
-        return this.executant.updateById(this.getMongoCollection(), id, po);
-    }
-
-    @Override
-    public long update(Bson filter, T po) {
-        return this.executant.update(this.getMongoCollection(), filter, po);
-    }
-
-    @Override
     public long updateById(Object id, Map<String, Object> values) {
         return this.executant.updateById(this.getMongoCollection(), id, values);
     }
@@ -183,6 +173,21 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     @Override
     public long update(Bson filter, Map<String, Object> values) {
         return this.executant.update(this.getMongoCollection(), filter, values);
+    }
+
+    @Override
+    public long updateOrInsertById(Object id, T po) {
+        return this.executant.updateOrInsertById(this.getMongoCollection(), id, po);
+    }
+
+    @Override
+    public long updateById(Object id, T po) {
+        return this.executant.updateById(this.getMongoCollection(), id, po);
+    }
+
+    @Override
+    public long update(Bson filter, T po) {
+        return this.executant.update(this.getMongoCollection(), filter, po);
     }
 
     @Override

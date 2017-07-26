@@ -89,10 +89,10 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
         this.executant.insert(this.getMongoCollection(parameter), po);
     }
 
-    @Override
-    public void insert(TSharding parameter, List<TPo> pos) {
-        this.executant.insert(this.getMongoCollection(parameter), pos);
-    }
+//    @Override
+//    public void insert(TSharding parameter, List<TPo> pos) {
+//        this.executant.insert(this.getMongoCollection(parameter), pos);
+//    }
 
     @Override
     public List<TPo> selectAll(TSharding parameter) {
@@ -180,16 +180,6 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
     }
 
     @Override
-    public long updateById(TSharding parameter, Object id, TPo po) {
-        return this.executant.updateById(this.getMongoCollection(parameter), id, po);
-    }
-
-    @Override
-    public long update(TSharding parameter, Bson filter, TPo po) {
-        return this.executant.update(this.getMongoCollection(parameter), filter, po);
-    }
-
-    @Override
     public long updateById(TSharding parameter, Object id, Map<String, Object> values) {
         return this.executant.updateById(this.getMongoCollection(parameter), id, values);
     }
@@ -197,6 +187,21 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
     @Override
     public long update(TSharding parameter, Bson filter, Map<String, Object> values) {
         return this.executant.update(this.getMongoCollection(parameter), filter, values);
+    }
+
+    @Override
+    public long updateOrInsertById(TSharding parameter, Object id, TPo po){
+        return this.executant.updateOrInsertById(this.getMongoCollection(parameter), id, po);
+    }
+
+    @Override
+    public long updateById(TSharding parameter, Object id, TPo po) {
+        return this.executant.updateById(this.getMongoCollection(parameter), id, po);
+    }
+
+    @Override
+    public long update(TSharding parameter, Bson filter, TPo po) {
+        return this.executant.update(this.getMongoCollection(parameter), filter, po);
     }
 
     @Override

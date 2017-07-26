@@ -14,7 +14,7 @@ public interface ShardingMongoRepository<TPo, TSharding> {
 
     void insert(TSharding parameter, TPo po);
 
-    void insert(TSharding parameter, List<TPo> pos);
+//    void insert(TSharding parameter, List<TPo> pos);
 
     List<TPo> selectAll(TSharding parameter);
 
@@ -50,11 +50,13 @@ public interface ShardingMongoRepository<TPo, TSharding> {
 
     long delete(TSharding parameter, Bson filter);
 
-    long updateById(TSharding parameter, Object id, TPo po);
-
     long updateById(TSharding parameter, Object id, Map<String, Object> values);
 
     long update(TSharding parameter, Bson filter, Map<String, Object> values);
+
+    long updateOrInsertById(TSharding parameter, Object id, TPo po);
+
+    long updateById(TSharding parameter, Object id, TPo po);
 
     long update(TSharding parameter, Bson filter, TPo po);
 

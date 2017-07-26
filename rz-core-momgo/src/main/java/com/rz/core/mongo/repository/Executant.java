@@ -61,17 +61,17 @@ class Executant<T> {
         }
     }
 
-    void insert(MongoCollection mongoCollection, List<T> pos) {
-        Assert.isNotNull(mongoCollection, "mongoCollection");
-        if (RZHelper.isEmptyCollection(pos)) {
-            return;
-        }
-
-        InsertManyOptions insertManyOptions = new InsertManyOptions();
-        insertManyOptions.bypassDocumentValidation(false);
-
-        mongoCollection.insertMany(BsonMapper.toDocument(pos, false), insertManyOptions);
-    }
+//    void insert(MongoCollection mongoCollection, List<T> pos) {
+//        Assert.isNotNull(mongoCollection, "mongoCollection");
+//        if (RZHelper.isEmptyCollection(pos)) {
+//            return;
+//        }
+//
+//        InsertManyOptions insertManyOptions = new InsertManyOptions();
+//        insertManyOptions.bypassDocumentValidation(false);
+//
+//        mongoCollection.insertMany(BsonMapper.toDocument(pos, false), insertManyOptions);
+//    }
 
     List<T> selectAll(MongoCollection mongoCollection) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
@@ -288,7 +288,15 @@ class Executant<T> {
         return updateResult.getModifiedCount();
     }
 
+    long updateOrInsertById(MongoCollection mongoCollection, Object id, T po) {
+        return this.updateById(mongoCollection, id, po, true);
+    }
+
     long updateById(MongoCollection mongoCollection, Object id, T po) {
+        return this.updateById(mongoCollection, id, po, false);
+    }
+
+    long updateById(MongoCollection mongoCollection, Object id, T po, boolean isUpsert) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == id || null == po) {
             return 0;
@@ -296,7 +304,7 @@ class Executant<T> {
 
         UpdateOptions updateOptions = new UpdateOptions();
         updateOptions.bypassDocumentValidation(false);
-        updateOptions.upsert(false);
+        updateOptions.upsert(isUpsert);
         UpdateResult updateResult = mongoCollection.updateOne(
                 this.formatFilter(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id)),
                 new Document("$set", BsonMapper.toDocument(po, true)),
@@ -388,6 +396,7 @@ class Executant<T> {
         while (documents.hasNext()) {
             Document document = (Document) documents.next();
             Map map;
+            // ignore ascending or descending
             if (null != document
                     && document.containsKey("key")
                     && null != (map = (Map) document.get("key")) &&

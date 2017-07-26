@@ -14,7 +14,7 @@ public interface MongoRepository<T> {
 
     void insert(T po);
 
-    void insert(List<T> pos);
+//    void insert(List<T> pos);
 
     List<T> selectAll();
 
@@ -50,11 +50,13 @@ public interface MongoRepository<T> {
 
     long delete(Bson filter);
 
-    long updateById(Object id, T po);
-
     long updateById(Object id, Map<String, Object> values);
 
     long update(Bson filter, Map<String, Object> values);
+
+    long updateOrInsertById(Object id, T po);
+
+    long updateById(Object id, T po);
 
     long update(Bson filter, T po);
 

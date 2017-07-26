@@ -28,6 +28,11 @@ import com.rz.core.practice.util.AppShutdownHandler;
 // @Import({ SelfXmlBeanConfig.class })
 public class PracticeApplication {
     public static void main(String[] args) throws Exception {
+        Pattern pattern = Pattern.compile("1[0-9]{10}", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher("123456");
+        System.out.println(matcher.find());
+
+
         SpringApplication.run(PracticeApplication.class, new String[]{});
 
         Map<String, Date> map = new HashMap<>();
