@@ -22,7 +22,7 @@ import com.rz.core.practice.model.MonitorDto;
 //Function<T, R>——接收T对象，返回R对象
 //Supplier<T>——提供T对象（例如工厂），不接收值
 //UnaryOperator<T>——接收T对象，返回T对象
-//BinaryOperator<T>——接收两个T对象，返回T对象
+//BinaryOperator<T>——接收两个T对象，返回T对象，对于“reduce”操作很有用   
 public class LinqHelper {
     public static void main(String[] args) {
         LinqHelper linqHelper = (LinqHelper) null;

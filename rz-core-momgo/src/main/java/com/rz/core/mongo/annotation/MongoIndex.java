@@ -11,4 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MongoIndex {
+    boolean value() default true;
+
+    boolean isAscending() default true;
 }

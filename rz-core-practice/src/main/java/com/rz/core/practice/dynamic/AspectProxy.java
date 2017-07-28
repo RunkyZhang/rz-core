@@ -11,6 +11,14 @@ public class AspectProxy {
 //    public void beforeAttack(JoinPoint joinPoint) {
 //        System.out.println("Advice: " + StringUtils.join(joinPoint.getArgs()));
 //    }
+
+// public: all public
+// *[0]: return
+// * *..*controller: any package end with controller
+// *[1]: any class
+// *[2]: any method
+// (..): any parameters
+// @Around("execution(public * *..*controller.*.*(..))")
     
     @Before("execution(public * run(..))")
     public void beforeAttack() {
