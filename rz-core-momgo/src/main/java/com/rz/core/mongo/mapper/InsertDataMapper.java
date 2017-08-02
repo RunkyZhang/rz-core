@@ -1,11 +1,13 @@
 package com.rz.core.mongo.mapper;
 
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.rz.core.Assert;
-import com.rz.core.mongo.repository.PoDefinition;
-import com.rz.core.mongo.repository.PoFieldDefinition;
+import com.rz.core.mongo.source.PoDefinition;
+import com.rz.core.mongo.source.PoFieldDefinition;
 import com.rz.core.mongo.source.SourcePool;
 import org.bson.Document;
+import org.bson.types.ObjectId;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Created by renjie.zhang on 8/2/2017.
@@ -18,16 +20,29 @@ public class InsertDataMapper {
 
         Class<T> clazz = (Class<T>) po.getClass();
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
-        PoFieldDefinition<T> idFieldDefinition = poDefinition.getIdField().getItem2();
 
+        ObjectId objectId = null;
+        PoFieldDefinition<T> idFieldDefinition = null == poDefinition.getIdField() ? null : poDefinition.getIdField().getItem2();
+        if(null != idFieldDefinition) {
+            try {
+                objectId = idFieldDefinition.isObjectId() ? (ObjectId) idFieldDefinition.getValue(po) : null;
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
 
         String json = com.alibaba.fastjson.JSON.toJSONString(po, SerializerFeature.DisableCircularReferenceDetect);
         Document document = Document.parse(json);
 
-        if (document.containsKey(poDefinition.getIdField().getItem1())
-                && !PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poDefinition.getIdField().getItem1())) {
-            document.put(PoFieldDefinition.MONGO_ID_FIELD_NAME, document.get(poDefinition.getIdField().getItem1()));
-            document.remove(poDefinition.getIdField().getItem1());
+        if(null != objectId){
+            document.put(idFieldDefinition.getName(), objectId);
+        }
+
+        if (null != idFieldDefinition
+                && document.containsKey(idFieldDefinition.getName())
+                && !PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(idFieldDefinition.getName())) {
+            document.put(PoFieldDefinition.MONGO_ID_FIELD_NAME, document.get(idFieldDefinition.getName()));
+            document.remove(idFieldDefinition.getName());
         }
 
         return document;

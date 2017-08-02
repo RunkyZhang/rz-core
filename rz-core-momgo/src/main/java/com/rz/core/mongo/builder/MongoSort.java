@@ -6,22 +6,14 @@ import com.rz.core.Assert;
  * Created by renjie.zhang on 7/13/2017.
  */
 public class MongoSort {
-    private String feildName;
+    private String fieldName;
     private boolean isAscending;
 
-    public MongoSort(String feildName, boolean isAscending) {
-        Assert.isNotBlank(feildName, "feildName");
+    public MongoSort(String fieldName, boolean isAscending) {
+        Assert.isNotBlank(fieldName, "fieldName");
 
-        this.feildName = feildName;
+        this.fieldName = fieldName;
         this.isAscending = isAscending;
-    }
-
-    public String getFeildName() {
-        return feildName;
-    }
-
-    public void setFeildName(String feildName) {
-        this.feildName = feildName;
     }
 
     public boolean isAscending() {
@@ -30,5 +22,13 @@ public class MongoSort {
 
     public void setAscending(boolean ascending) {
         isAscending = ascending;
+    }
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
     }
 }

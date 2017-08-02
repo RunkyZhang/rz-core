@@ -1,5 +1,6 @@
 package com.rz.core.mongo.repository;
 
+import com.mongodb.Function;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
@@ -11,6 +12,13 @@ import com.rz.core.Assert;
 import com.rz.core.RZHelper;
 import com.rz.core.mongo.builder.MongoSort;
 import com.rz.core.mongo.builder.MongoSortBuilder;
+import com.rz.core.mongo.mapper.InsertDataMapper;
+import com.rz.core.mongo.mapper.SelectDataMapper;
+import com.rz.core.mongo.mapper.UpdateDataMapper;
+import com.rz.core.mongo.source.PoDefinition;
+import com.rz.core.mongo.source.PoFieldDefinition;
+import com.rz.core.mongo.source.SourcePool;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -28,36 +36,51 @@ class Executant<T> {
     }
 
     void insert(MongoCollection mongoCollection, T po) {
+        this.insert(mongoCollection, po, null);
+    }
+
+    void insert(MongoCollection mongoCollection, T po, Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == po) {
             return;
         }
-        PoFieldDefinition<T> poFieldDefinition = null == this.poDefinition.getIdField() ? null : this.poDefinition.getIdField().getItem2();
-        if (null != poFieldDefinition && !poFieldDefinition.isObjectId()) {
+
+        PoFieldDefinition<T> idFieldDefinition = null == this.poDefinition.getIdField() ? null : this.poDefinition.getIdField().getItem2();
+
+        // if exist id and id is objectId type(auto increase)
+        Object id = null;
+        if (null != idFieldDefinition) {
             try {
-                Assert.isNotNull(poFieldDefinition.getValue(po), "po." + poFieldDefinition.getName());
+                id = idFieldDefinition.getValue(po);
             } catch (InvocationTargetException | IllegalAccessException e) {
                 e.printStackTrace();
-                throw new MongoException(
-                        String.format("Failed to get %s field value, error message: %s.", poFieldDefinition.getName(), e.getMessage()));
+
+                throw new MongoException(String.format("Failed to get id field(%s) value.", idFieldDefinition.getName()), e);
+            }
+
+            if (!idFieldDefinition.isObjectId()) {
+                Assert.isNotNull(id, "po." + idFieldDefinition.getName());
             }
         }
 
         InsertOneOptions insertOneOptions = new InsertOneOptions();
         insertOneOptions.bypassDocumentValidation(false);
 
-        Document document = BsonMapper.toDocument(po, false);
+        Document document = InsertDataMapper.toDocument(po);
+        if (null != function) {
+            document = function.apply(document);
+        }
         mongoCollection.insertOne(document, insertOneOptions);
 
-        try {
-            if (null != poFieldDefinition
-                    && poFieldDefinition.isObjectId()
-                    && null == poFieldDefinition.getValue(po)
-                    && document.containsKey(PoFieldDefinition.MONGO_ID_FIELD_NAME)) {
-                poFieldDefinition.setValue(po, document.get(PoFieldDefinition.MONGO_ID_FIELD_NAME));
+        // re-back id to po
+        if (null != idFieldDefinition
+                && idFieldDefinition.isObjectId()
+                && document.containsKey(PoFieldDefinition.MONGO_ID_FIELD_NAME)) {
+            try {
+                idFieldDefinition.setValue(po, document.get(PoFieldDefinition.MONGO_ID_FIELD_NAME));
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -81,7 +104,7 @@ class Executant<T> {
             return null;
         }
 
-        return BsonMapper.toObject(findIterable.iterator(), poDefinition.getPoClazz());
+        return SelectDataMapper.toObject(findIterable.iterator(), poDefinition.getPoClazz());
     }
 
     T selectById(MongoCollection mongoCollection, Object id) {
@@ -97,6 +120,10 @@ class Executant<T> {
     }
 
     T selectFirst(MongoCollection mongoCollection, Bson filter, List<MongoSort> mongoSorts) {
+        return this.selectFirst(mongoCollection, filter, mongoSorts, (Function<Document, Document>) null);
+    }
+
+    T selectFirst(MongoCollection mongoCollection, Bson filter, List<MongoSort> mongoSorts, Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
 
         FindIterable findIterable = this.buildFindIterable(mongoCollection, filter, 0, null, mongoSorts);
@@ -105,8 +132,11 @@ class Executant<T> {
             return null;
         }
         Document document = (Document) findIterable.first();
+        if (null != function) {
+            document = function.apply(document);
+        }
 
-        return BsonMapper.toObject(document, this.poDefinition.getPoClazz());
+        return SelectDataMapper.toObject(document, this.poDefinition.getPoClazz());
     }
 
     Map selectById(MongoCollection mongoCollection, Object id, String... fieldNames) {
@@ -134,6 +164,14 @@ class Executant<T> {
     }
 
     Map selectFirst(MongoCollection mongoCollection, Bson filter, List<MongoSort> mongoSorts, String... fieldNames) {
+        return this.selectFirst(mongoCollection, filter, mongoSorts, null, fieldNames);
+    }
+
+    Map selectFirst(
+            MongoCollection mongoCollection,
+            Bson filter, List<MongoSort> mongoSorts,
+            Function<Document, Document> function,
+            String... fieldNames) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         Assert.isNotEmpty(fieldNames, "fieldNames");
 
@@ -143,8 +181,11 @@ class Executant<T> {
             return null;
         }
         Document document = (Document) findIterable.first();
+        if (null != function) {
+            document = function.apply(document);
+        }
 
-        return BsonMapper.toMap(document, this.poDefinition.getPoClazz(), fieldNames);
+        return SelectDataMapper.toMap(document, this.poDefinition.getPoClazz(), fieldNames);
     }
 
     List<T> selectByIds(MongoCollection mongoCollection, List<Object> ids) {
@@ -155,17 +196,17 @@ class Executant<T> {
             return new ArrayList<>();
         }
 
-        List<Bson> bsons = new ArrayList<>();
+        List<Bson> filters = new ArrayList<>();
         for (Object id : ids) {
             if (null != id) {
-                bsons.add(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id));
+                filters.add(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id));
             }
         }
-        if (bsons.isEmpty()) {
+        if (filters.isEmpty()) {
             return new ArrayList<>();
         }
 
-        return this.select(mongoCollection, Filters.or(bsons));
+        return this.select(mongoCollection, Filters.or(filters));
     }
 
     List<T> select(MongoCollection mongoCollection, Bson filter) {
@@ -173,6 +214,16 @@ class Executant<T> {
     }
 
     List<T> select(MongoCollection mongoCollection, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts) {
+        return this.select(mongoCollection, filter, skip, limit, mongoSorts, (Function<Iterator<Document>, Iterator<Document>>) null);
+    }
+
+    List<T> select(
+            MongoCollection mongoCollection,
+            Bson filter,
+            int skip,
+            Integer limit,
+            List<MongoSort> mongoSorts,
+            Function<Iterator<Document>, Iterator<Document>> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
 
         FindIterable findIterable = this.buildFindIterable(mongoCollection, filter, skip, limit, mongoSorts);
@@ -181,7 +232,12 @@ class Executant<T> {
             return null;
         }
 
-        return BsonMapper.toObject(findIterable.iterator(), this.poDefinition.getPoClazz());
+        Iterator<Document> documents = findIterable.iterator();
+        if (null != function) {
+            documents = function.apply(documents);
+        }
+
+        return SelectDataMapper.toObject(documents, this.poDefinition.getPoClazz());
     }
 
     List<Map> selectByIds(MongoCollection mongoCollection, List<Object> ids, String... fieldNames) {
@@ -192,17 +248,17 @@ class Executant<T> {
             return new ArrayList<>();
         }
 
-        List<Bson> bsons = new ArrayList<>();
+        List<Bson> filters = new ArrayList<>();
         for (Object id : ids) {
             if (null != id) {
-                bsons.add(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id));
+                filters.add(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id));
             }
         }
-        if (bsons.isEmpty()) {
+        if (filters.isEmpty()) {
             return new ArrayList<>();
         }
 
-        return this.select(mongoCollection, Filters.or(bsons), fieldNames);
+        return this.select(mongoCollection, Filters.or(filters), fieldNames);
     }
 
     List<Map> select(MongoCollection mongoCollection, Bson filter, String... fieldNames) {
@@ -210,6 +266,17 @@ class Executant<T> {
     }
 
     List<Map> select(MongoCollection mongoCollection, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames) {
+        return select(mongoCollection, filter, skip, limit, mongoSorts, null, fieldNames);
+    }
+
+    List<Map> select(
+            MongoCollection mongoCollection,
+            Bson filter,
+            int skip,
+            Integer limit,
+            List<MongoSort> mongoSorts,
+            Function<Iterator<Document>, Iterator<Document>> function,
+            String... fieldNames) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         Assert.isNotEmpty(fieldNames, "fieldNames");
 
@@ -219,7 +286,12 @@ class Executant<T> {
             return null;
         }
 
-        return BsonMapper.toMap(findIterable.iterator(), this.poDefinition.getPoClazz(), fieldNames);
+        Iterator<Document> documents = findIterable.iterator();
+        if (null != function) {
+            documents = function.apply(documents);
+        }
+
+        return SelectDataMapper.toMap(documents, this.poDefinition.getPoClazz(), fieldNames);
     }
 
     long deleteById(MongoCollection mongoCollection, Object id) {
@@ -250,9 +322,18 @@ class Executant<T> {
     }
 
     long updateById(MongoCollection mongoCollection, Object id, Map<String, Object> values) {
+        return this.updateById(mongoCollection, id, values, null);
+    }
+
+    long updateById(MongoCollection mongoCollection, Object id, Map<String, Object> values, Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == id || RZHelper.isEmptyCollection(values)) {
             return 0;
+        }
+
+        Document document = UpdateDataMapper.toDocument(values, this.poDefinition.getPoClazz());
+        if (null != function) {
+            document = function.apply(document);
         }
 
         UpdateOptions updateOptions = new UpdateOptions();
@@ -260,7 +341,7 @@ class Executant<T> {
         updateOptions.upsert(false);
         UpdateResult updateResult = mongoCollection.updateOne(
                 this.formatFilter(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id)),
-                new Document("$set", BsonMapper.toDocument(values, this.poDefinition.getPoClazz())),
+                new Document("$set", document),
                 updateOptions);
         if (null == updateResult) {
             return 0;
@@ -270,16 +351,25 @@ class Executant<T> {
     }
 
     long update(MongoCollection mongoCollection, Bson filter, Map<String, Object> values) {
+        return this.update(mongoCollection, filter, values, null);
+    }
+
+    long update(MongoCollection mongoCollection, Bson filter, Map<String, Object> values, Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == values || values.isEmpty()) {
             return 0;
+        }
+
+        Document document = UpdateDataMapper.toDocument(values, this.poDefinition.getPoClazz());
+        if (null != function) {
+            document = function.apply(document);
         }
 
         UpdateOptions updateOptions = new UpdateOptions();
         updateOptions.bypassDocumentValidation(false);
         UpdateResult updateResult = mongoCollection.updateMany(
                 this.formatFilter(filter),
-                new Document("$set", BsonMapper.toDocument(values, this.poDefinition.getPoClazz())),
+                new Document("$set", document),
                 updateOptions);
         if (null == updateResult) {
             return 0;
@@ -297,9 +387,18 @@ class Executant<T> {
     }
 
     long updateById(MongoCollection mongoCollection, Object id, T po, boolean isUpsert) {
+        return updateById(mongoCollection, id, po, isUpsert, null);
+    }
+
+    long updateById(MongoCollection mongoCollection, Object id, T po, boolean isUpsert, Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == id || null == po) {
             return 0;
+        }
+
+        Document document = UpdateDataMapper.toDocument(po);
+        if (null != function) {
+            document = function.apply(document);
         }
 
         UpdateOptions updateOptions = new UpdateOptions();
@@ -307,7 +406,7 @@ class Executant<T> {
         updateOptions.upsert(isUpsert);
         UpdateResult updateResult = mongoCollection.updateOne(
                 this.formatFilter(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id)),
-                new Document("$set", BsonMapper.toDocument(po, true)),
+                new Document("$set", document),
                 updateOptions);
         if (null == updateResult) {
             return 0;
@@ -317,9 +416,18 @@ class Executant<T> {
     }
 
     long update(MongoCollection mongoCollection, Bson filter, T po) {
+        return this.update(mongoCollection, filter, po, null);
+    }
+
+    long update(MongoCollection mongoCollection, Bson filter, T po, Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == po) {
             return 0;
+        }
+
+        Document document = UpdateDataMapper.toDocument(po);
+        if (null != function) {
+            document = function.apply(document);
         }
 
         UpdateOptions updateOptions = new UpdateOptions();
@@ -327,7 +435,7 @@ class Executant<T> {
         updateOptions.upsert(false);
         UpdateResult updateResult = mongoCollection.updateMany(
                 this.formatFilter(filter),
-                new Document("$set", BsonMapper.toDocument(po, true)),
+                new Document("$set", document),
                 updateOptions);
         if (null == updateResult) {
             return 0;
@@ -353,7 +461,7 @@ class Executant<T> {
         findOneAndUpdateOptions.bypassDocumentValidation(false);
         Document document = (Document) mongoCollection.findOneAndUpdate(
                 this.formatFilter(filter), Updates.inc(fieldName, number), findOneAndUpdateOptions);
-        Map map = BsonMapper.toMap(document, this.poDefinition.getPoClazz(), fieldName);
+        Map map = SelectDataMapper.toMap(document, this.poDefinition.getPoClazz(), fieldName);
 
         return null == map || !map.containsKey(fieldName) ? null : map.get(fieldName);
     }
@@ -428,21 +536,61 @@ class Executant<T> {
         }
 
         if (!RZHelper.isEmptyCollection(mongoSorts)) {
-            mongoSorts = BsonMapper.formatId(mongoSorts, this.poDefinition.getPoClazz());
+            mongoSorts = this.replaceIdField(mongoSorts, this.poDefinition.getPoClazz());
             MongoSortBuilder sortByBuilder = null;
             for (MongoSort mongoSort : mongoSorts) {
                 if (null != mongoSort) {
-                    sortByBuilder = null == sortByBuilder ? MongoSortBuilder.createByAppand(mongoSort) : sortByBuilder.appand(mongoSort);
+                    sortByBuilder = null == sortByBuilder ? MongoSortBuilder.createByAppend(mongoSort) : sortByBuilder.append(mongoSort);
                 }
             }
             findIterable.sort(Sorts.orderBy(sortByBuilder.build()));
         }
 
         if (null != fieldNames && 0 < fieldNames.length) {
-            findIterable.projection(Projections.include(BsonMapper.formatId(fieldNames, this.poDefinition.getPoClazz())));
+            findIterable.projection(Projections.include(this.replaceIdField(fieldNames, this.poDefinition.getPoClazz())));
         }
 
         return findIterable;
+    }
+
+    private <T> List<MongoSort> replaceIdField(List<MongoSort> mongoSorts, Class<T> clazz) {
+        if (null == mongoSorts) {
+            return null;
+        }
+        Assert.isNotNull(clazz, "clazz");
+
+        PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
+        String idFieldName = poDefinition.getIdField().getItem1();
+
+        for (MongoSort mongoSort : mongoSorts) {
+            if (null == mongoSort || StringUtils.isBlank(mongoSort.getFieldName())) {
+                continue;
+            }
+
+            if (mongoSort.getFieldName().equals(idFieldName) && !PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(idFieldName)) {
+                mongoSort.setFieldName(PoFieldDefinition.MONGO_ID_FIELD_NAME);
+            }
+        }
+
+        return mongoSorts;
+    }
+
+    public static <T> String[] replaceIdField(String[] fieldNames, Class<T> clazz) {
+        if (null == fieldNames) {
+            return null;
+        }
+        Assert.isNotNull(clazz, "clazz");
+
+        PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
+        String idFieldName = poDefinition.getIdField().getItem1();
+
+        Set<String> set = new HashSet<>(Arrays.asList(fieldNames));
+        if (set.contains(idFieldName) && !PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(idFieldName)) {
+            set.add(PoFieldDefinition.MONGO_ID_FIELD_NAME);
+            set.remove(poDefinition.getIdField().getItem1());
+        }
+
+        return set.toArray(new String[set.size()]);
     }
 
     private Bson formatFilter(Bson filter) {

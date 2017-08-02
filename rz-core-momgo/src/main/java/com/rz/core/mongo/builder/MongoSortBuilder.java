@@ -16,62 +16,62 @@ public class MongoSortBuilder {
         this.sorts = new HashMap<>();
     }
 
-    public MongoSortBuilder appand(MongoSort mongoSort) {
+    public MongoSortBuilder append(MongoSort mongoSort) {
         Assert.isNotNull(mongoSort, "mongoSort");
 
         if (mongoSort.isAscending()) {
-            return MongoSortBuilder.create(this, mongoSort.getFeildName(), true);
+            return MongoSortBuilder.create(this, mongoSort.getFieldName(), true);
         } else {
-            return MongoSortBuilder.create(this, mongoSort.getFeildName(), false);
+            return MongoSortBuilder.create(this, mongoSort.getFieldName(), false);
         }
     }
 
-    public MongoSortBuilder descending(String feildName) {
-        return MongoSortBuilder.create(this, feildName, false);
+    public MongoSortBuilder descending(String fieldName) {
+        return MongoSortBuilder.create(this, fieldName, false);
     }
 
-    public MongoSortBuilder ascending(String feildName) {
-        return MongoSortBuilder.create(this, feildName, true);
+    public MongoSortBuilder ascending(String fieldName) {
+        return MongoSortBuilder.create(this, fieldName, true);
     }
 
     public List<Bson> build() {
         return new ArrayList<>(this.sorts.values());
     }
 
-    public static MongoSortBuilder createByAppand(MongoSort mongoSort) {
+    public static MongoSortBuilder createByAppend(MongoSort mongoSort) {
         Assert.isNotNull(mongoSort, "mongoSort");
 
         MongoSortBuilder mongoSortBuilder = new MongoSortBuilder();
         if (mongoSort.isAscending()) {
-            return MongoSortBuilder.create(mongoSortBuilder, mongoSort.getFeildName(), true);
+            return MongoSortBuilder.create(mongoSortBuilder, mongoSort.getFieldName(), true);
         } else {
-            return MongoSortBuilder.create(mongoSortBuilder, mongoSort.getFeildName(), false);
+            return MongoSortBuilder.create(mongoSortBuilder, mongoSort.getFieldName(), false);
         }
     }
 
-    public static MongoSortBuilder createByDescending(String feildName) {
+    public static MongoSortBuilder createByDescending(String fieldName) {
         MongoSortBuilder mongoSortBuilder = new MongoSortBuilder();
 
-        return MongoSortBuilder.create(mongoSortBuilder, feildName, false);
+        return MongoSortBuilder.create(mongoSortBuilder, fieldName, false);
     }
 
-    public static MongoSortBuilder createByAscending(String feildName) {
+    public static MongoSortBuilder createByAscending(String fieldName) {
         MongoSortBuilder mongoSortBuilder = new MongoSortBuilder();
 
-        return MongoSortBuilder.create(mongoSortBuilder, feildName, true);
+        return MongoSortBuilder.create(mongoSortBuilder, fieldName, true);
     }
 
-    private static MongoSortBuilder create(MongoSortBuilder sortBuilder, String feildName, boolean isAscending) {
+    private static MongoSortBuilder create(MongoSortBuilder sortBuilder, String fieldName, boolean isAscending) {
         Assert.isNotNull(sortBuilder, "sortBuilder");
-        Assert.isNotBlank(feildName, "feildName");
+        Assert.isNotBlank(fieldName, "fieldName");
 
         Document sort = new Document();
         if (isAscending) {
-            sort.put(feildName, 1);
+            sort.put(fieldName, 1);
         } else {
-            sort.put(feildName, -1);
+            sort.put(fieldName, -1);
         }
-        sortBuilder.sorts.put(feildName, sort);
+        sortBuilder.sorts.put(fieldName, sort);
 
         return sortBuilder;
     }

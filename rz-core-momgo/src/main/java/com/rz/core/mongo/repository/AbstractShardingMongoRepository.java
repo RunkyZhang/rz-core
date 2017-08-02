@@ -4,8 +4,10 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.rz.core.Assert;
+import com.rz.core.mongo.source.PoDefinition;
 import com.rz.core.mongo.source.SourcePool;
 import com.rz.core.mongo.builder.MongoSort;
+import net.sf.cglib.proxy.Enhancer;
 import org.bson.conversions.Bson;
 
 import java.util.List;
@@ -53,7 +55,11 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
         this.rawConnectionString = rawConnectionString;
         this.rawDatabaseName = rawDatabaseName;
         this.rawTableName = rawTableName;
-        this.executant = new Executant<>(this.poDefinition);
+
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(Executant.class);
+        enhancer.setCallback(new ExecutantInterceptor());
+        this.executant = (Executant<TPo>) enhancer.create(new Class[]{this.poDefinition.getClass()}, new Object[]{this.poDefinition});
     }
 
     @Override
@@ -161,8 +167,8 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
     }
 
     @Override
-    public List<Map> select(TSharding parameter, Bson filter, String... feildNames) {
-        return this.executant.select(this.getMongoCollection(parameter), filter, feildNames);
+    public List<Map> select(TSharding parameter, Bson filter, String... fieldNames) {
+        return this.executant.select(this.getMongoCollection(parameter), filter, fieldNames);
     }
 
     @Override

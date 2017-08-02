@@ -21,7 +21,7 @@
     <spring-data-redis.verion>1.7.5.RELEASE</spring-data-redis.verion>
     <org.apache.httpcomponents.version>4.5.2</org.apache.httpcomponents.version>
     <org.quartz-scheduler.version>2.2.1</org.quartz-scheduler.version>
-    <cglib.version>2.2.2</cglib.version>
+    <cglib.version>3.2.5</cglib.version>
     <rz-core.version>0.0.1-SNAPSHOT</rz-core.version>
     <org.apache.commons.lang3.version>3.5</org.apache.commons.lang3.version>
     <org.apache.commons.collections4.version>4.0</org.apache.commons.collections4.version>

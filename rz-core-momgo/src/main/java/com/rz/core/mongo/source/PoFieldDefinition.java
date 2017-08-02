@@ -1,6 +1,5 @@
-package com.rz.core.mongo.repository;
+package com.rz.core.mongo.source;
 
-import com.mongodb.MongoException;
 import com.rz.core.Assert;
 import com.rz.core.mongo.annotation.MongoId;
 import com.rz.core.mongo.annotation.MongoIndex;

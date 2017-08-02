@@ -4,8 +4,10 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.rz.core.Assert;
+import com.rz.core.mongo.source.PoDefinition;
 import com.rz.core.mongo.source.SourcePool;
 import com.rz.core.mongo.builder.MongoSort;
+import net.sf.cglib.proxy.Enhancer;
 import org.bson.conversions.Bson;
 
 import java.util.List;
@@ -48,7 +50,7 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     protected MongoCollection getMongoCollection() {
         return this.mongoCollection;
     }
-
+    
     public AbstractMongoRepository(Class<T> clazz, String rawConnectionString, String rawDatabaseName, String rawTableName) {
         Assert.isNotNull(clazz, "clazz");
         Assert.isNotBlank(rawConnectionString, "rawConnectionString");
@@ -59,7 +61,11 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
         this.rawConnectionString = rawConnectionString;
         this.rawDatabaseName = rawDatabaseName;
         this.rawTableName = rawTableName;
-        this.executant = new Executant<>(this.poDefinition);
+
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(Executant.class);
+        enhancer.setCallback(new ExecutantInterceptor());
+        this.executant = (Executant<T>) enhancer.create(new Class[]{this.poDefinition.getClass()}, new Object[]{this.poDefinition});
 
         this.mongoClient = SourcePool.getMongoClient(this.rawConnectionString);
         this.mongoDatabase = SourcePool.getMongoDatabase(this.rawConnectionString, rawDatabaseName);
@@ -102,13 +108,13 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     }
 
     @Override
-    public Map selectById(Object id, String... feildNames) {
-        return this.executant.selectById(this.getMongoCollection(), id, feildNames);
+    public Map selectById(Object id, String... fieldNames) {
+        return this.executant.selectById(this.getMongoCollection(), id, fieldNames);
     }
 
     @Override
-    public Map selectFirst(Bson filter, String... feildNames) {
-        return this.executant.selectFirst(this.getMongoCollection(), filter, feildNames);
+    public Map selectFirst(Bson filter, String... fieldNames) {
+        return this.executant.selectFirst(this.getMongoCollection(), filter, fieldNames);
     }
 
     @Override

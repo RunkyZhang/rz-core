@@ -1,4 +1,4 @@
-package com.rz.core.mongo.repository;
+package com.rz.core.mongo.source;
 
 import com.rz.core.Assert;
 import com.rz.core.RZHelper;
