@@ -16,6 +16,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -396,5 +399,10 @@ public abstract class RZHelper {
         return allFields.values().toArray(new Field[allFields.size()]);
     }
 
-
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        // ConcurrentHashMap's putIfAbsent is thread safety
+        // failed to put then return null, or return value
+        return o -> null == map.putIfAbsent(keyExtractor.apply(o), Boolean.TRUE);
+    }
 }

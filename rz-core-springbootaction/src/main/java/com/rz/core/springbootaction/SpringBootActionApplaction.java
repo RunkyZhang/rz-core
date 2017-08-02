@@ -28,7 +28,8 @@ public class SpringBootActionApplaction {
         ResourceBanner resourceBanner = new ResourceBanner(new ClassPathResource("banner.txt"));
         new SpringApplicationBuilder()
                 .initializers(new LoadConfigApplicationContextInitializer())
-                .listeners(new PropertyApplicationListener()).sources(SpringBootActionApplaction.class)
+                .listeners(new PropertyApplicationListener())
+                .sources(SpringBootActionApplaction.class)
                 .banner(resourceBanner)
                 .run(args);
 

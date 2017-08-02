@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.rz.core.RZHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -53,6 +54,9 @@ public class LinqHelper {
             monitorDto.setPBool(0 == i % 2);
             monitorDtos.add(monitorDto);
         }
+
+        // distinct
+        monitorDtos = monitorDtos.stream().filter(RZHelper.distinctByKey(o -> o.isPBool())).collect(Collectors.toList());
 
         // mix: this = OrderBy(o => o.bool).ThenByDescending(o => o.int)
         List<MonitorDto> monitorDtosMix = monitorDtos.stream().sorted((o1, o2) -> Integer.compare(o1.getAge(), o2.getAge()))

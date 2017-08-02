@@ -46,6 +46,7 @@
       <artifactId>spring-web</artifactId>
     </dependency>
     <dependency>
+      <!-- for rest route -->
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
     </dependency>

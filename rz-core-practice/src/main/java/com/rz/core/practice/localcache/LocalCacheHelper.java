@@ -8,6 +8,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+// expireAfterWrite 指定时间没有更新，就过期再次访问时同步更新返回新值。所以就算有访问，到时间也会过期
+// expireAfterAccess 指定没有更新和访问，就过期再次访问时同步更新返回新值。所以只有要访问，到时间就不会过期
+// refreshAfterWrite 指定时间没有更新，再次访问时就异步更新并马上返回旧值
 public class LocalCacheHelper {
     public static void main(String[] args) {
         LocalCacheHelper localCacheHelper = new LocalCacheHelper();

@@ -1,4 +1,4 @@
-package com.rz.core.mongo.repository;
+package com.rz.core.mongo.source;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -6,15 +6,15 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.rz.core.Assert;
 import com.rz.core.Tuple2;
+import com.rz.core.mongo.repository.PoDefinition;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Created by renjie.zhang on 7/11/2017.
  */
-class SourcePool {
+public class SourcePool {
     private static Map<Integer, Tuple2<MongoClient, Map<String, Tuple2<MongoDatabase, Map<String, MongoCollection>>>>> mongoSourcePool = new HashMap<>();
     private static Map<Class<?>, PoDefinition> poDefinitionPool = new HashMap<>();
 
