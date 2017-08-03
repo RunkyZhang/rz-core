@@ -45,8 +45,8 @@ public class UpdateDataMapper {
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
         String idFieldName = null == poDefinition.getIdFieldDefinition() ? null : poDefinition.getIdFieldDefinition().getName();
 
-        Document document = new Document();
-        document.putAll(values);
+        String json = com.alibaba.fastjson.JSON.toJSONString(values, SerializerFeature.DisableCircularReferenceDetect);
+        Document document = Document.parse(json);
 
         document.remove(PoFieldDefinition.MONGO_ID_FIELD_NAME);
         if (!StringUtils.isBlank(idFieldName)) {
