@@ -28,24 +28,24 @@ import java.util.*;
 /**
  * Created by renjie.zhang on 7/13/2017.
  */
-class Executant<T> {
+public class Executant<T> {
     private PoDefinition<T> poDefinition;
 
-    Executant(PoDefinition<T> poDefinition) {
+    public Executant(PoDefinition<T> poDefinition) {
         this.poDefinition = poDefinition;
     }
 
-    void insert(MongoCollection mongoCollection, T po) {
+    public void insert(MongoCollection mongoCollection, T po) {
         this.insert(mongoCollection, po, null);
     }
 
-    void insert(MongoCollection mongoCollection, T po, Function<Document, Document> function) {
+    public void insert(MongoCollection mongoCollection, T po, Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == po) {
             return;
         }
 
-        PoFieldDefinition<T> idFieldDefinition = null == this.poDefinition.getIdField() ? null : this.poDefinition.getIdField().getItem2();
+        PoFieldDefinition<T> idFieldDefinition = this.poDefinition.getIdFieldDefinition();
 
         // if exist id and id is objectId type(auto increase)
         Object id = null;
@@ -96,7 +96,7 @@ class Executant<T> {
 //        mongoCollection.insertMany(BsonMapper.toDocument(pos, false), insertManyOptions);
 //    }
 
-    List<T> selectAll(MongoCollection mongoCollection) {
+    public List<T> selectAll(MongoCollection mongoCollection) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
 
         FindIterable findIterable = mongoCollection.find();
@@ -107,7 +107,7 @@ class Executant<T> {
         return SelectDataMapper.toObject(findIterable.iterator(), poDefinition.getPoClazz());
     }
 
-    T selectById(MongoCollection mongoCollection, Object id) {
+    public T selectById(MongoCollection mongoCollection, Object id) {
         if (null == id) {
             return null;
         }
@@ -115,15 +115,19 @@ class Executant<T> {
         return this.selectFirst(mongoCollection, Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id));
     }
 
-    T selectFirst(MongoCollection mongoCollection, Bson filter) {
+    public T selectFirst(MongoCollection mongoCollection, Bson filter) {
         return this.selectFirst(mongoCollection, filter, (List<MongoSort>) null);
     }
 
-    T selectFirst(MongoCollection mongoCollection, Bson filter, List<MongoSort> mongoSorts) {
+    public T selectFirst(MongoCollection mongoCollection, Bson filter, List<MongoSort> mongoSorts) {
         return this.selectFirst(mongoCollection, filter, mongoSorts, (Function<Document, Document>) null);
     }
 
-    T selectFirst(MongoCollection mongoCollection, Bson filter, List<MongoSort> mongoSorts, Function<Document, Document> function) {
+    public T selectFirst(
+            MongoCollection mongoCollection,
+            Bson filter,
+            List<MongoSort> mongoSorts,
+            Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
 
         FindIterable findIterable = this.buildFindIterable(mongoCollection, filter, 0, null, mongoSorts);
@@ -139,7 +143,7 @@ class Executant<T> {
         return SelectDataMapper.toObject(document, this.poDefinition.getPoClazz());
     }
 
-    Map selectById(MongoCollection mongoCollection, Object id, String... fieldNames) {
+    public Map selectById(MongoCollection mongoCollection, Object id, String... fieldNames) {
         if (null == id) {
             return null;
         }
@@ -147,27 +151,27 @@ class Executant<T> {
         return this.selectFirst(mongoCollection, Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id), fieldNames);
     }
 
-    Map selectFirst(MongoCollection mongoCollection, Bson filter, String... fieldNames) {
+    public Map selectFirst(MongoCollection mongoCollection, Bson filter, String... fieldNames) {
         return this.selectFirst(mongoCollection, filter, null, fieldNames);
     }
 
-    Object max(MongoCollection mongoCollection, String fieldName) {
+    public Object max(MongoCollection mongoCollection, String fieldName) {
         Map map = this.selectFirst(mongoCollection, null, Arrays.asList(new MongoSort(fieldName, false)), fieldName);
 
         return null == map || !map.containsKey(fieldName) ? null : map.get(fieldName);
     }
 
-    Object min(MongoCollection mongoCollection, String fieldName) {
+    public Object min(MongoCollection mongoCollection, String fieldName) {
         Map map = this.selectFirst(mongoCollection, null, Arrays.asList(new MongoSort(fieldName, true)), fieldName);
 
         return null == map || !map.containsKey(fieldName) ? null : map.get(fieldName);
     }
 
-    Map selectFirst(MongoCollection mongoCollection, Bson filter, List<MongoSort> mongoSorts, String... fieldNames) {
+    public Map selectFirst(MongoCollection mongoCollection, Bson filter, List<MongoSort> mongoSorts, String... fieldNames) {
         return this.selectFirst(mongoCollection, filter, mongoSorts, null, fieldNames);
     }
 
-    Map selectFirst(
+    public Map selectFirst(
             MongoCollection mongoCollection,
             Bson filter, List<MongoSort> mongoSorts,
             Function<Document, Document> function,
@@ -188,7 +192,7 @@ class Executant<T> {
         return SelectDataMapper.toMap(document, this.poDefinition.getPoClazz(), fieldNames);
     }
 
-    List<T> selectByIds(MongoCollection mongoCollection, List<Object> ids) {
+    public List<T> selectByIds(MongoCollection mongoCollection, List<Object> ids) {
         if (null == ids) {
             return null;
         }
@@ -209,15 +213,15 @@ class Executant<T> {
         return this.select(mongoCollection, Filters.or(filters));
     }
 
-    List<T> select(MongoCollection mongoCollection, Bson filter) {
+    public List<T> select(MongoCollection mongoCollection, Bson filter) {
         return this.select(mongoCollection, filter, 0, null, null);
     }
 
-    List<T> select(MongoCollection mongoCollection, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts) {
+    public List<T> select(MongoCollection mongoCollection, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts) {
         return this.select(mongoCollection, filter, skip, limit, mongoSorts, (Function<Iterator<Document>, Iterator<Document>>) null);
     }
 
-    List<T> select(
+    public List<T> select(
             MongoCollection mongoCollection,
             Bson filter,
             int skip,
@@ -240,7 +244,7 @@ class Executant<T> {
         return SelectDataMapper.toObject(documents, this.poDefinition.getPoClazz());
     }
 
-    List<Map> selectByIds(MongoCollection mongoCollection, List<Object> ids, String... fieldNames) {
+    public List<Map> selectByIds(MongoCollection mongoCollection, List<Object> ids, String... fieldNames) {
         if (null == ids) {
             return null;
         }
@@ -261,15 +265,21 @@ class Executant<T> {
         return this.select(mongoCollection, Filters.or(filters), fieldNames);
     }
 
-    List<Map> select(MongoCollection mongoCollection, Bson filter, String... fieldNames) {
+    public List<Map> select(MongoCollection mongoCollection, Bson filter, String... fieldNames) {
         return this.select(mongoCollection, filter, 0, null, null, fieldNames);
     }
 
-    List<Map> select(MongoCollection mongoCollection, Bson filter, int skip, Integer limit, List<MongoSort> mongoSorts, String... fieldNames) {
+    public List<Map> select(
+            MongoCollection mongoCollection,
+            Bson filter,
+            int skip,
+            Integer limit,
+            List<MongoSort> mongoSorts,
+            String... fieldNames) {
         return select(mongoCollection, filter, skip, limit, mongoSorts, null, fieldNames);
     }
 
-    List<Map> select(
+    public List<Map> select(
             MongoCollection mongoCollection,
             Bson filter,
             int skip,
@@ -294,7 +304,7 @@ class Executant<T> {
         return SelectDataMapper.toMap(documents, this.poDefinition.getPoClazz(), fieldNames);
     }
 
-    long deleteById(MongoCollection mongoCollection, Object id) {
+    public long deleteById(MongoCollection mongoCollection, Object id) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == id) {
             return 0;
@@ -309,7 +319,7 @@ class Executant<T> {
         return deleteResult.getDeletedCount();
     }
 
-    long delete(MongoCollection mongoCollection, Bson filter) {
+    public long delete(MongoCollection mongoCollection, Bson filter) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
 
         DeleteOptions deleteOptions = new DeleteOptions();
@@ -321,11 +331,15 @@ class Executant<T> {
         return deleteResult.getDeletedCount();
     }
 
-    long updateById(MongoCollection mongoCollection, Object id, Map<String, Object> values) {
+    public long updateById(MongoCollection mongoCollection, Object id, Map<String, Object> values) {
         return this.updateById(mongoCollection, id, values, null);
     }
 
-    long updateById(MongoCollection mongoCollection, Object id, Map<String, Object> values, Function<Document, Document> function) {
+    public long updateById(
+            MongoCollection mongoCollection,
+            Object id,
+            Map<String, Object> values,
+            Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == id || RZHelper.isEmptyCollection(values)) {
             return 0;
@@ -350,11 +364,15 @@ class Executant<T> {
         return updateResult.getModifiedCount();
     }
 
-    long update(MongoCollection mongoCollection, Bson filter, Map<String, Object> values) {
+    public long update(MongoCollection mongoCollection, Bson filter, Map<String, Object> values) {
         return this.update(mongoCollection, filter, values, null);
     }
 
-    long update(MongoCollection mongoCollection, Bson filter, Map<String, Object> values, Function<Document, Document> function) {
+    public long update(
+            MongoCollection mongoCollection,
+            Bson filter,
+            Map<String, Object> values,
+            Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == values || values.isEmpty()) {
             return 0;
@@ -378,19 +396,24 @@ class Executant<T> {
         return updateResult.getModifiedCount();
     }
 
-    long updateOrInsertById(MongoCollection mongoCollection, Object id, T po) {
+    public long updateOrInsertById(MongoCollection mongoCollection, Object id, T po) {
         return this.updateById(mongoCollection, id, po, true);
     }
 
-    long updateById(MongoCollection mongoCollection, Object id, T po) {
+    public long updateById(MongoCollection mongoCollection, Object id, T po) {
         return this.updateById(mongoCollection, id, po, false);
     }
 
-    long updateById(MongoCollection mongoCollection, Object id, T po, boolean isUpsert) {
+    public long updateById(MongoCollection mongoCollection, Object id, T po, boolean isUpsert) {
         return updateById(mongoCollection, id, po, isUpsert, null);
     }
 
-    long updateById(MongoCollection mongoCollection, Object id, T po, boolean isUpsert, Function<Document, Document> function) {
+    public long updateById(
+            MongoCollection mongoCollection,
+            Object id,
+            T po,
+            boolean isUpsert,
+            Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == id || null == po) {
             return 0;
@@ -415,11 +438,11 @@ class Executant<T> {
         return updateResult.getModifiedCount();
     }
 
-    long update(MongoCollection mongoCollection, Bson filter, T po) {
+    public long update(MongoCollection mongoCollection, Bson filter, T po) {
         return this.update(mongoCollection, filter, po, null);
     }
 
-    long update(MongoCollection mongoCollection, Bson filter, T po, Function<Document, Document> function) {
+    public long update(MongoCollection mongoCollection, Bson filter, T po, Function<Document, Document> function) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         if (null == po) {
             return 0;
@@ -444,7 +467,7 @@ class Executant<T> {
         return updateResult.getModifiedCount();
     }
 
-    Object increaseById(MongoCollection mongoCollection, Object id, String fieldName, int number) {
+    public Object increaseById(MongoCollection mongoCollection, Object id, String fieldName, int number) {
         if (null == id) {
             return null;
         }
@@ -452,7 +475,7 @@ class Executant<T> {
         return this.increase(mongoCollection, this.formatFilter(Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id)), fieldName, number);
     }
 
-    Object increase(MongoCollection mongoCollection, Bson filter, String fieldName, int number) {
+    public Object increase(MongoCollection mongoCollection, Bson filter, String fieldName, int number) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         Assert.isNotBlank(fieldName, "fieldName");
 
@@ -466,20 +489,20 @@ class Executant<T> {
         return null == map || !map.containsKey(fieldName) ? null : map.get(fieldName);
     }
 
-    long count(MongoCollection mongoCollection, Bson filter) {
+    public long count(MongoCollection mongoCollection, Bson filter) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
 
         CountOptions countOptions = new CountOptions();
         return mongoCollection.count(this.formatFilter(filter), countOptions);
     }
 
-    long count(MongoCollection mongoCollection) {
+    public long count(MongoCollection mongoCollection) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
 
         return mongoCollection.count();
     }
 
-    long countById(MongoCollection mongoCollection, Object id) {
+    public long countById(MongoCollection mongoCollection, Object id) {
         if (null == id) {
             return 0;
         }
@@ -487,11 +510,11 @@ class Executant<T> {
         return this.count(mongoCollection, Filters.eq(PoFieldDefinition.MONGO_ID_FIELD_NAME, id));
     }
 
-    void createIndex(MongoCollection mongoCollection, String fieldName, boolean isAscending) {
+    public void createIndex(MongoCollection mongoCollection, String fieldName, boolean isAscending) {
         Assert.isNotNull(mongoCollection, "mongoCollection");
         Assert.isNotBlank(fieldName, "fieldName");
-        String idFieldName = null == this.poDefinition.getIdField() ? null : this.poDefinition.getIdField().getItem1();
-        if (!this.poDefinition.containsField(fieldName) || fieldName.equals(idFieldName)) {
+        String idFieldName = null == this.poDefinition.getIdFieldDefinition() ? null : this.poDefinition.getIdFieldDefinition().getName();
+        if (!this.poDefinition.containsPoFieldDefinition(fieldName) || fieldName.equals(idFieldName)) {
             return;
         }
 
@@ -559,8 +582,10 @@ class Executant<T> {
         }
         Assert.isNotNull(clazz, "clazz");
 
-        PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
-        String idFieldName = poDefinition.getIdField().getItem1();
+        String idFieldName = null == this.poDefinition.getIdFieldDefinition() ? null : this.poDefinition.getIdFieldDefinition().getName();
+        if (StringUtils.isBlank(idFieldName)) {
+            return mongoSorts;
+        }
 
         for (MongoSort mongoSort : mongoSorts) {
             if (null == mongoSort || StringUtils.isBlank(mongoSort.getFieldName())) {
@@ -575,19 +600,21 @@ class Executant<T> {
         return mongoSorts;
     }
 
-    public static <T> String[] replaceIdField(String[] fieldNames, Class<T> clazz) {
+    public <T> String[] replaceIdField(String[] fieldNames, Class<T> clazz) {
         if (null == fieldNames) {
             return null;
         }
         Assert.isNotNull(clazz, "clazz");
 
-        PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
-        String idFieldName = poDefinition.getIdField().getItem1();
+        String idFieldName = null == this.poDefinition.getIdFieldDefinition() ? null : this.poDefinition.getIdFieldDefinition().getName();
+        if (StringUtils.isBlank(idFieldName)) {
+            return fieldNames;
+        }
 
         Set<String> set = new HashSet<>(Arrays.asList(fieldNames));
         if (set.contains(idFieldName) && !PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(idFieldName)) {
             set.add(PoFieldDefinition.MONGO_ID_FIELD_NAME);
-            set.remove(poDefinition.getIdField().getItem1());
+            set.remove(idFieldName);
         }
 
         return set.toArray(new String[set.size()]);

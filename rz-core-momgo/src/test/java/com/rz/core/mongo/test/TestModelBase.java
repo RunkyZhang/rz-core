@@ -1,5 +1,7 @@
 package com.rz.core.mongo.test;
 
+import com.rz.core.mongo.annotation.MongoIndex;
+
 import java.util.Date;
 import java.util.List;
 
@@ -9,6 +11,7 @@ import java.util.List;
 public class TestModelBase {
     private Date createdTime;
     private int age;
+    @MongoIndex
     private String name;
     private TestVersion defaultVersion;
     private List<TestVersion> versions;

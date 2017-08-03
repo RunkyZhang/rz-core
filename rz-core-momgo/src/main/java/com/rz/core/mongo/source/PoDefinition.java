@@ -2,7 +2,6 @@ package com.rz.core.mongo.source;
 
 import com.rz.core.Assert;
 import com.rz.core.RZHelper;
-import com.rz.core.Tuple2;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -16,74 +15,68 @@ import java.util.Map;
  */
 public class PoDefinition<T> {
     private Class<T> clazz;
-    private Tuple2<String, PoFieldDefinition<T>> idField;
-    private List<Tuple2<String, PoFieldDefinition<T>>> indexFields;
-    private Map<String, PoFieldDefinition<T>> fields;
+    private PoFieldDefinition<T> idFieldDefinition;
+    private List<PoFieldDefinition<T>> indexFieldDefinitions;
+    private Map<String, PoFieldDefinition<T>> poFieldDefinitions;
 
     public Class<T> getPoClazz() {
         return this.clazz;
     }
 
-    public Tuple2<String, PoFieldDefinition<T>> getIdField() {
-        return idField;
+    public PoFieldDefinition<T> getIdFieldDefinition() {
+        return idFieldDefinition;
     }
 
-    public List<Tuple2<String, PoFieldDefinition<T>>> getIndexFields() {
-        return indexFields;
+    public List<PoFieldDefinition<T>> getIndexFieldDefinitions() {
+        return indexFieldDefinitions;
     }
 
-    public Map<String, PoFieldDefinition<T>> getFields() {
-        return fields;
+    public Map<String, PoFieldDefinition<T>> getPoFieldDefinitions() {
+        return poFieldDefinitions;
     }
 
     public PoDefinition(Class<T> clazz) {
         Assert.isNotNull(clazz, "clazz");
 
         this.clazz = clazz;
-        this.idField = null;
-        this.indexFields = new ArrayList<>();
-        this.fields = new HashMap<>();
+        this.idFieldDefinition = null;
+        this.indexFieldDefinitions = new ArrayList<>();
+        this.poFieldDefinitions = new HashMap<>();
 
         Field[] fields = RZHelper.getDeclaredFields(clazz);
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) {
                 PoFieldDefinition<T> poFieldDefinition = new PoFieldDefinition<>(clazz, field);
                 if (poFieldDefinition.isIndex()) {
-                    indexFields.add(new Tuple2<>(poFieldDefinition.getName(), poFieldDefinition));
+                    indexFieldDefinitions.add(poFieldDefinition);
                 }
 
                 if (poFieldDefinition.isId()) {
                     this.setIdField(poFieldDefinition);
                 }
 
-                this.fields.put(poFieldDefinition.getName(), poFieldDefinition);
+                this.poFieldDefinitions.put(poFieldDefinition.getName(), poFieldDefinition);
             }
         }
-
-        if (null == idField) {
-            this.idField = new Tuple2<>(PoFieldDefinition.MONGO_ID_FIELD_NAME, null);
-        }
     }
 
-    public boolean containsField(String name) {
-        return this.fields.containsKey(name);
+    public boolean containsPoFieldDefinition(String name) {
+        return this.poFieldDefinitions.containsKey(name);
     }
 
-    public PoFieldDefinition<T> getField(String name) {
-        return this.fields.get(name);
-    }
-
-    public void getFieldValue(String name) {
-        this.fields.get(name);
+    public PoFieldDefinition<T> getPoFieldDefinition(String name) {
+        return this.poFieldDefinitions.get(name);
     }
 
     private void setIdField(PoFieldDefinition<T> poFieldDefinition) {
-        if (null == idField) {
-            this.idField = new Tuple2<>(poFieldDefinition.getName(), poFieldDefinition);
-        } else if (PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poFieldDefinition.getName()) && PoFieldDefinition.ID_FIELD_NAME.equals(this.idField.getItem1())) {
-            this.idField = new Tuple2<>(poFieldDefinition.getName(), poFieldDefinition);
-        } else if (!PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poFieldDefinition.getName()) && !PoFieldDefinition.ID_FIELD_NAME.equals(poFieldDefinition.getName())) {
-            this.idField = new Tuple2<>(poFieldDefinition.getName(), poFieldDefinition);
+        if (null == this.idFieldDefinition) {
+            this.idFieldDefinition = poFieldDefinition;
+        } else if (PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poFieldDefinition.getName())
+                && PoFieldDefinition.ID_FIELD_NAME.equals(this.idFieldDefinition.getName())) {
+            this.idFieldDefinition = poFieldDefinition;
+        } else if (!PoFieldDefinition.MONGO_ID_FIELD_NAME.equals(poFieldDefinition.getName())
+                && !PoFieldDefinition.ID_FIELD_NAME.equals(poFieldDefinition.getName())) {
+            this.idFieldDefinition = poFieldDefinition;
         }
     }
 }

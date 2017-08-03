@@ -5,6 +5,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.rz.core.Assert;
 import com.rz.core.mongo.source.PoDefinition;
+import com.rz.core.mongo.source.PoFieldDefinition;
 import com.rz.core.mongo.source.SourcePool;
 import com.rz.core.mongo.builder.MongoSort;
 import net.sf.cglib.proxy.Enhancer;
@@ -22,6 +23,7 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     protected String rawDatabaseName;
     protected String rawTableName;
     protected Executant<T> executant;
+    protected boolean autoCreateIndex;
 
     private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
@@ -39,6 +41,10 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
         return this.rawTableName;
     }
 
+    protected boolean getAutoCreateIndex() {
+        return this.autoCreateIndex;
+    }
+
     protected MongoClient getMongoClient() {
         return this.mongoClient;
     }
@@ -50,8 +56,13 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     protected MongoCollection getMongoCollection() {
         return this.mongoCollection;
     }
-    
-    public AbstractMongoRepository(Class<T> clazz, String rawConnectionString, String rawDatabaseName, String rawTableName) {
+
+    public AbstractMongoRepository(
+            Class<T> clazz,
+            String rawConnectionString,
+            String rawDatabaseName,
+            String rawTableName,
+            boolean autoCreateIndex) {
         Assert.isNotNull(clazz, "clazz");
         Assert.isNotBlank(rawConnectionString, "rawConnectionString");
         Assert.isNotBlank(rawDatabaseName, "rawDatabaseName");
@@ -66,10 +77,25 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
         enhancer.setSuperclass(Executant.class);
         enhancer.setCallback(new ExecutantInterceptor());
         this.executant = (Executant<T>) enhancer.create(new Class[]{this.poDefinition.getClass()}, new Object[]{this.poDefinition});
+        this.autoCreateIndex = autoCreateIndex;
 
         this.mongoClient = SourcePool.getMongoClient(this.rawConnectionString);
         this.mongoDatabase = SourcePool.getMongoDatabase(this.rawConnectionString, rawDatabaseName);
         this.mongoCollection = SourcePool.getMongoCollection(this.rawConnectionString, rawDatabaseName, rawTableName);
+
+        if (this.autoCreateIndex) {
+            List<PoFieldDefinition<T>> indexFieldDefinitions = this.poDefinition.getIndexFieldDefinitions();
+            if (null != indexFieldDefinitions) {
+                for (PoFieldDefinition indexFieldDefinition : indexFieldDefinitions) {
+                    if (null == indexFieldDefinition) {
+                        continue;
+                    }
+
+                    this.executant.createIndex(this.mongoCollection, indexFieldDefinition.getName(), indexFieldDefinition.isAscending());
+                }
+            }
+            this.autoCreateIndex = false;
+        }
     }
 
     @Override

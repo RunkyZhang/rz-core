@@ -8,8 +8,14 @@ import com.rz.core.Assert;
 public class DefaultShardingMongoRepository<TPo, TSharding> extends AbstractShardingMongoRepository<TPo, TSharding> {
     private Shardingable<TSharding> shardingable;
 
-    public DefaultShardingMongoRepository(Class<TPo> poClass, Shardingable<TSharding> shardingable, String rawConnectionString, String rawDatabaseName, String rawTableName) {
-        super(poClass, rawConnectionString, rawDatabaseName, rawTableName);
+    public DefaultShardingMongoRepository(
+            Class<TPo> poClass,
+            Shardingable<TSharding> shardingable,
+            String rawConnectionString,
+            String rawDatabaseName,
+            String rawTableName,
+            boolean autoCreateIndex) {
+        super(poClass, rawConnectionString, rawDatabaseName, rawTableName, autoCreateIndex);
 
         Assert.isNotNull(shardingable, "shardingable");
 

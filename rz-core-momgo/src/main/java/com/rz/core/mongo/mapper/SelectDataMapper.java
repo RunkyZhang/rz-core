@@ -21,7 +21,7 @@ public class SelectDataMapper {
         Assert.isNotNull(clazz, "clazz");
 
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
-        PoFieldDefinition<T> idFieldDefinition = null == poDefinition.getIdField() ? null : poDefinition.getIdField().getItem2();
+        PoFieldDefinition<T> idFieldDefinition = poDefinition.getIdFieldDefinition();
 
         ObjectId objectId = null;
         if (null != idFieldDefinition) {
@@ -32,7 +32,7 @@ public class SelectDataMapper {
 
             Object value = document.get(idFieldDefinition.getName());
             if (value instanceof ObjectId) {
-                if (poDefinition.getIdField().getItem2().isObjectId()) {
+                if (idFieldDefinition.isObjectId()) {
                     objectId = (ObjectId) value;
                 }
             }
@@ -81,8 +81,8 @@ public class SelectDataMapper {
 
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
         for (String fieldName : fieldNames) {
-            if (poDefinition.containsField(fieldName)) {
-                PoFieldDefinition<T> poFieldDefinition = poDefinition.getField(fieldName);
+            if (poDefinition.containsPoFieldDefinition(fieldName)) {
+                PoFieldDefinition<T> poFieldDefinition = poDefinition.getPoFieldDefinition(fieldName);
                 try {
                     map.put(fieldName, poFieldDefinition.getValue(po));
                 } catch (InvocationTargetException | IllegalAccessException e) {

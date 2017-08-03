@@ -22,7 +22,7 @@ public class InsertDataMapper {
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
 
         ObjectId objectId = null;
-        PoFieldDefinition<T> idFieldDefinition = null == poDefinition.getIdField() ? null : poDefinition.getIdField().getItem2();
+        PoFieldDefinition<T> idFieldDefinition = poDefinition.getIdFieldDefinition();
         if(null != idFieldDefinition) {
             try {
                 objectId = idFieldDefinition.isObjectId() ? (ObjectId) idFieldDefinition.getValue(po) : null;

@@ -27,6 +27,7 @@ public class PoFieldDefinition<T> {
     private Method getterMethod;
     private boolean isId;
     private boolean isIndex;
+    private boolean isAscending;
     private boolean isObjectId;
     private boolean canSet;
     private boolean canGet;
@@ -110,6 +111,8 @@ public class PoFieldDefinition<T> {
                 this.isIndex = true;
             } else if (MongoIndex.class == annotation.annotationType()) {
                 this.isIndex = true;
+                MongoIndex mongoIndex = field.getAnnotation(MongoIndex.class);
+                this.isAscending = mongoIndex.isAscending();
             }
         }
 
@@ -151,5 +154,9 @@ public class PoFieldDefinition<T> {
 
     public boolean isObjectId() {
         return isObjectId;
+    }
+
+    public boolean isAscending() {
+        return isAscending;
     }
 }

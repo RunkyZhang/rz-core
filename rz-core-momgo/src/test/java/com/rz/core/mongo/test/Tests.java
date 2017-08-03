@@ -26,15 +26,19 @@ public class Tests {
                 new MonthSharding(
                         "mongodb://localhost:27017",
                         "RunkyTest",
-                        "AutoIdTestModel")).build();
+                        "AutoIdTestModel"))
+                .setAutoCreateIndex(true)
+                .build();
         Tests.specialIdTestModelRepository = ShardingMongoRepositoryBuilder.create(
                 SpecialIdTestModel.class,
                 new MonthSharding(
                         "mongodb://localhost:27017",
                         "RunkyTest",
-                        "SpecialIdTestModel")).build();
+                        "SpecialIdTestModel"))
+                .setAutoCreateIndex(true)
+                .build();
 
-        Tests.specialIdTestModelRepository.createIndex(new Date(), "age", false);
+        // Tests.specialIdTestModelRepository.createIndex(new Date(), "age", false);
 
         Tests tests = new Tests();
 
@@ -43,8 +47,8 @@ public class Tests {
 
             //tests.testMax();
             //tests.testIncrease();
-            tests.testUpdate();
-            //tests.testInstert();
+            //tests.testUpdate();
+            tests.testInstert();
             //tests.testSelect();
             //tests.testCount();
             //tests.testDelete();

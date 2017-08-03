@@ -14,6 +14,7 @@ public class MongoRepositoryBuilder<T> {
     private String connectionString;
     private String databaseName;
     private String tableName;
+    private boolean autoCreateIndex;
 
     private MongoRepositoryBuilder(Class<T> clazz) {
         Assert.isNotNull(clazz, "clazz");
@@ -46,6 +47,12 @@ public class MongoRepositoryBuilder<T> {
         return this;
     }
 
+    public MongoRepositoryBuilder<T> setAutoCreateIndex(boolean autoCreateIndex) {
+        this.autoCreateIndex = autoCreateIndex;
+
+        return this;
+    }
+
     public MongoRepository<T> build() {
         MongoClientURI mongoClientUri = new MongoClientURI(this.connectionString);
         if (StringUtils.isBlank(this.databaseName)) {
@@ -58,7 +65,7 @@ public class MongoRepositoryBuilder<T> {
             this.tableName = this.clazz.getName();
         }
 
-        return new DefaultMongoRepository<>(this.clazz, this.connectionString, this.databaseName, this.tableName);
+        return new DefaultMongoRepository<>(this.clazz, this.connectionString, this.databaseName, this.tableName, this.autoCreateIndex);
     }
 
     public static <T> MongoRepositoryBuilder<T> create(Class<T> clazz) {

@@ -23,13 +23,13 @@ public class UpdateDataMapper {
 
         Class<T> clazz = (Class<T>) po.getClass();
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
-        String idFieldName = null == poDefinition.getIdField() ? null : poDefinition.getIdField().getItem1();
+        String idFieldName = null == poDefinition.getIdFieldDefinition() ? null : poDefinition.getIdFieldDefinition().getName();
 
         String json = com.alibaba.fastjson.JSON.toJSONString(po, SerializerFeature.DisableCircularReferenceDetect);
         Document document = Document.parse(json);
 
         document.remove(PoFieldDefinition.MONGO_ID_FIELD_NAME);
-        if (StringUtils.isBlank(idFieldName)) {
+        if (!StringUtils.isBlank(idFieldName)) {
             document.remove(idFieldName);
         }
 
@@ -43,18 +43,18 @@ public class UpdateDataMapper {
         Assert.isNotNull(clazz, "clazz");
 
         PoDefinition<T> poDefinition = SourcePool.getPoDefinition(clazz);
-        String idFieldName = null == poDefinition.getIdField() ? null : poDefinition.getIdField().getItem1();
+        String idFieldName = null == poDefinition.getIdFieldDefinition() ? null : poDefinition.getIdFieldDefinition().getName();
 
         Document document = new Document();
         document.putAll(values);
 
         document.remove(PoFieldDefinition.MONGO_ID_FIELD_NAME);
-        if (StringUtils.isBlank(idFieldName)) {
+        if (!StringUtils.isBlank(idFieldName)) {
             document.remove(idFieldName);
         }
 
         List<String> removedFieldNames =
-                values.keySet().stream().filter(o -> !poDefinition.containsField(o)).collect(Collectors.toList());
+                values.keySet().stream().filter(o -> !poDefinition.containsPoFieldDefinition(o)).collect(Collectors.toList());
         for (String removedFieldName : removedFieldNames) {
             document.remove(removedFieldName);
         }

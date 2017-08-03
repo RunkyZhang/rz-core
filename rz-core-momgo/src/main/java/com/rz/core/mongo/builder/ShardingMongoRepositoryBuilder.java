@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 public class ShardingMongoRepositoryBuilder<TPo, TSharding> {
     private Class<TPo> clazz;
     private Shardingable<TSharding> shardingable;
+    private boolean autoCreateIndex;
 
     private ShardingMongoRepositoryBuilder(Class<TPo> clazz, Shardingable<TSharding> shardingable) {
         Assert.isNotNull(clazz, "clazz");
@@ -20,13 +21,20 @@ public class ShardingMongoRepositoryBuilder<TPo, TSharding> {
         this.shardingable = shardingable;
     }
 
+    public ShardingMongoRepositoryBuilder<TPo, TSharding> setAutoCreateIndex(boolean autoCreateIndex) {
+        this.autoCreateIndex = autoCreateIndex;
+
+        return this;
+    }
+
     public ShardingMongoRepository<TPo, TSharding> build() {
         return new DefaultShardingMongoRepository<>(
                 this.clazz,
                 this.shardingable,
                 this.shardingable.getRawConnectionString(),
                 this.shardingable.getRawDatabaseName(),
-                this.shardingable.getRawTableName());
+                this.shardingable.getRawTableName(),
+                this.autoCreateIndex);
     }
 
     public static <T, TSharding> ShardingMongoRepositoryBuilder<T, TSharding> create(Class<T> clazz, Shardingable<TSharding> shardingable) {

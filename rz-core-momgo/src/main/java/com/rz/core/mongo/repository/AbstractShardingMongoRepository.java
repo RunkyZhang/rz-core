@@ -5,6 +5,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.rz.core.Assert;
 import com.rz.core.mongo.source.PoDefinition;
+import com.rz.core.mongo.source.PoFieldDefinition;
 import com.rz.core.mongo.source.SourcePool;
 import com.rz.core.mongo.builder.MongoSort;
 import net.sf.cglib.proxy.Enhancer;
@@ -23,6 +24,7 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
     protected String rawDatabaseName;
     protected String rawTableName;
     protected Executant<TPo> executant;
+    protected Boolean autoCreateIndex;
 
     protected MongoClient getMongoClient(TSharding parameter) {
         String connectionString = this.buildConnectionString(parameter);
@@ -42,10 +44,36 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
         String databaseName = this.buildDatabaseName(parameter);
         String tableName = this.buildTableName(parameter);
 
-        return SourcePool.getMongoCollection(connectionString, databaseName, tableName);
+        MongoCollection mongoCollection = SourcePool.getMongoCollection(connectionString, databaseName, tableName);
+
+        if (this.autoCreateIndex) {
+            synchronized (this.autoCreateIndex) {
+                if (this.autoCreateIndex) {
+                    List<PoFieldDefinition<TPo>> indexFieldDefinitions = this.poDefinition.getIndexFieldDefinitions();
+                    if (null != indexFieldDefinitions) {
+                        for (PoFieldDefinition indexFieldDefinition : indexFieldDefinitions) {
+                            if (null == indexFieldDefinition) {
+                                continue;
+                            }
+
+                            this.executant.createIndex(
+                                    mongoCollection, indexFieldDefinition.getName(), indexFieldDefinition.isAscending());
+                        }
+                    }
+                    this.autoCreateIndex = false;
+                }
+            }
+        }
+
+        return mongoCollection;
     }
 
-    public AbstractShardingMongoRepository(Class<TPo> clazz, String rawConnectionString, String rawDatabaseName, String rawTableName) {
+    public AbstractShardingMongoRepository(
+            Class<TPo> clazz,
+            String rawConnectionString,
+            String rawDatabaseName,
+            String rawTableName,
+            boolean autoCreateIndex) {
         Assert.isNotNull(clazz, "clazz");
         Assert.isNotBlank(rawConnectionString, "rawConnectionString");
         Assert.isNotBlank(rawDatabaseName, "rawDatabaseName");
@@ -60,6 +88,7 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
         enhancer.setSuperclass(Executant.class);
         enhancer.setCallback(new ExecutantInterceptor());
         this.executant = (Executant<TPo>) enhancer.create(new Class[]{this.poDefinition.getClass()}, new Object[]{this.poDefinition});
+        this.autoCreateIndex = autoCreateIndex;
     }
 
     @Override
@@ -80,6 +109,10 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
     @Override
     public String getRawTableName() {
         return this.rawTableName;
+    }
+
+    public Boolean getAutoCreateIndex(){
+        return this.autoCreateIndex;
     }
 
     @Override
@@ -197,7 +230,7 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
     }
 
     @Override
-    public long updateOrInsertById(TSharding parameter, Object id, TPo po){
+    public long updateOrInsertById(TSharding parameter, Object id, TPo po) {
         return this.executant.updateOrInsertById(this.getMongoCollection(parameter), id, po);
     }
 
