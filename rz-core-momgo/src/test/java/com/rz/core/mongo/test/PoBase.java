@@ -2,6 +2,8 @@ package com.rz.core.mongo.test;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by renjie.zhang on 7/10/2017.
@@ -17,6 +19,9 @@ public class PoBase implements Serializable {
     private Date createdTime;
     private Date updatedTime;
     private String comment;
+    private PoBase me;
+    private List<String> messages;
+    private Map<PoBase, PoBase> poBaseMap;
 
 //    private String privateValue1 = "privateValue1";
 //    String privateValue2 = "privateValue2";
@@ -61,6 +66,30 @@ public class PoBase implements Serializable {
 
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public PoBase getMe() {
+        return me;
+    }
+
+    public void setMe(PoBase me) {
+        this.me = me;
+    }
+
+    public List<String> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<String> messages) {
+        this.messages = messages;
+    }
+
+    public Map<PoBase, PoBase> getPoBaseMap() {
+        return poBaseMap;
+    }
+
+    public void setPoBaseMap(Map<PoBase, PoBase> poBaseMap) {
+        this.poBaseMap = poBaseMap;
     }
 
 //    private String getPrivateValue2() {

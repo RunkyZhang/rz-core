@@ -50,13 +50,18 @@ public abstract class RZHelper {
         }
     }
 
-    public static boolean interfaceOf(Class<?> clazz, Class<?> interfaceClazz) {
+    public static boolean interfaceOf(Class<?> clazz, Class<?> targetInterfaceClass) {
         Assert.isNotNull(clazz, "clazz");
+        Assert.isNotNull(targetInterfaceClass, "targetInterfaceClass");
 
-        Class<?>[] interfaceClazzes = clazz.getInterfaces();
-        for (int i = 0; i < interfaceClazzes.length; i++) {
-            if (interfaceClazz == interfaceClazzes[i]) {
+        Class<?>[] interfaceClasses = clazz.getInterfaces();
+        for (int i = 0; i < interfaceClasses.length; i++) {
+            if (targetInterfaceClass.equals(interfaceClasses[i])) {
                 return true;
+            } else {
+                if (interfaceOf(interfaceClasses[i], targetInterfaceClass)) {
+                    return true;
+                }
             }
         }
 

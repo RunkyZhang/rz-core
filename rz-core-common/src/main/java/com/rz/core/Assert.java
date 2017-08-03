@@ -101,14 +101,14 @@ public class Assert {
 
     public static void areEqual(Object expected, Object actual, String errorMessage) {
         if ((null == expected && null != actual) || (null != expected && !expected.equals(actual))) {
-            errorMessage = null == errorMessage ? "The expected value [" + expected.toString() + "] and actual value [" + actual.toString() + "] are not equal." : errorMessage;
+            errorMessage = null == errorMessage ? "The expected value and actual value are not equal." : errorMessage;
             throw Assert.buildException(errorMessage);
         }
     }
 
     public static void areNotEqual(Object expected, Object actual, String errorMessage) {
         if ((null == expected && null == actual) || (null != expected && expected.equals(actual))) {
-            errorMessage = null == errorMessage ? "The expected value [" + expected.toString() + "] and actual value [" + actual.toString() + "] are equal." : errorMessage;
+            errorMessage = null == errorMessage ? "The expected value and actual value are equal." : errorMessage;
             throw Assert.buildException(errorMessage);
         }
     }

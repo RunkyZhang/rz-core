@@ -1,12 +1,15 @@
 package com.rz.core.mongo.test;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.mongodb.client.model.Filters;
+import com.rz.core.RZHelper;
 import com.rz.core.mongo.builder.MongoRepositoryBuilder;
 import com.rz.core.mongo.builder.MongoSort;
 import com.rz.core.mongo.builder.ShardingMongoRepositoryBuilder;
 import com.rz.core.mongo.repository.MongoRepository;
 import com.rz.core.mongo.repository.ShardingMongoRepository;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
@@ -21,6 +24,23 @@ public class Tests {
     private static ShardingMongoRepository<SpecialIdTestModel, Date> specialIdTestModelRepository;
 
     public static void main(String[] args) {
+        System.out.println(RZHelper.interfaceOf(List.class, Iterable.class));
+
+        PoBase poBase = new PoBase();
+        poBase.setComment("asdasdasd");
+        poBase.setMessages(Arrays.asList("asdasdasd", "123123123"));
+        Map<PoBase, PoBase> poBases = new HashMap<>();
+        PoBase poBaseKey = new PoBase();
+        poBaseKey.setOperationUser("asdasdasd");
+        PoBase poBaseValue = new PoBase();
+        poBaseValue.setDeleted(true);
+        poBases.put(poBaseKey, poBaseValue);
+        poBase.setPoBaseMap(poBases);
+        System.out.println(JSON.toJSONString(poBase, SerializerFeature.DisableCircularReferenceDetect));
+
+        String json = com.alibaba.fastjson.JSON.toJSONString(poBase, SerializerFeature.DisableCircularReferenceDetect);
+        Document document = Document.parse(json);
+
         Tests.autoIdTestModelRepository = ShardingMongoRepositoryBuilder.create(
                 AutoIdTestModel.class,
                 new MonthSharding(
