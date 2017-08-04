@@ -21,7 +21,7 @@ public class CloneMachine {
         return CloneMachine.clone(instance, instanceRecords, true);
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static <T> T clone(T instance, Set<Object> instanceRecords, boolean ignoreException) throws Exception {
         if (null == instance) {
             return null;
@@ -30,7 +30,7 @@ public class CloneMachine {
         // not allow loop reference the same instance.
         // throw StackOverflowError when invoke .hashCode() with by instance that use @Data.
         // that has loop reference.
-        if (true == instanceRecords.contains(instance)) {
+        if (instanceRecords.contains(instance)) {
             return instance;
         } else {
             instanceRecords.add(instance);
@@ -38,25 +38,21 @@ public class CloneMachine {
 
         Class clazz = instance.getClass();
 
-        if (true == RZHelper.isBaseClazz(clazz)) {
+        if (RZHelper.isBaseClazz(clazz) || clazz.isEnum()) {
             return instance;
         }
 
-        T newInstance = null;
+        T newInstance;
         int length = 0;
         try {
-            if (true == clazz.isArray()) {
+            if (clazz.isArray()) {
                 length = Array.getLength(instance);
-                newInstance = (T) Array.newInstance(instance.getClass().getComponentType(), length);
+                newInstance = (T) Array.newInstance(clazz.getComponentType(), length);
             } else {
-                if (true == clazz.isEnum()) {
-                    newInstance = (T) Enum.valueOf(clazz, ((Enum) instance).name());
-                } else {
-                    newInstance = (T) clazz.newInstance();
-                }
+                newInstance = (T) clazz.newInstance();
             }
         } catch (Exception e) {
-            if (true == ignoreException) {
+            if (ignoreException) {
                 System.out.println(e.getMessage());
             } else {
                 throw e;
@@ -65,99 +61,59 @@ public class CloneMachine {
             return instance;
         }
 
-        if (true == clazz.isArray()) {
+        if (clazz.isArray()) {
             for (int i = 0; i < length; i++) {
                 Object item = Array.get(instance, i);
-                Object newItem = item;
-                try {
-                    newItem = CloneMachine.clone(item, instanceRecords, ignoreException);
-                } catch (Exception e) {
-                    if (true == ignoreException) {
-                        System.out.println(e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
-                Array.set(newInstance, i, newItem);
+                Array.set(newInstance, i, CloneMachine.safeClone(item, instanceRecords, ignoreException));
             }
         } else if (instance instanceof Collection) {
             Collection collection = (Collection) instance;
             for (Object item : collection) {
-                Object newItem = item;
-                try {
-                    newItem = CloneMachine.clone(item, instanceRecords, ignoreException);
-                } catch (Exception e) {
-                    if (true == ignoreException) {
-                        System.out.println(e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
-                ((Collection) newInstance).add(newItem);
+                ((Collection) newInstance).add(CloneMachine.safeClone(item, instanceRecords, ignoreException));
             }
         } else if (instance instanceof Map) {
             Map map = (Map) instance;
             for (Object item : map.entrySet()) {
-                Map.Entry entiy = (Map.Entry) item;
+                Map.Entry entry = (Map.Entry) item;
 
-                Object entiyKey = entiy.getKey();
-                Object newEntiyKey = entiyKey;
-                try {
-                    newEntiyKey = CloneMachine.clone(entiyKey, instanceRecords, ignoreException);
-                } catch (Exception e) {
-                    if (true == ignoreException) {
-                        System.out.println(e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
-
-                Object entiyValue = entiy.getValue();
-                Object newEntiyValue = entiyValue;
-                try {
-                    newEntiyValue = CloneMachine.clone(entiyValue, instanceRecords, ignoreException);
-                } catch (Exception e) {
-                    if (true == ignoreException) {
-                        System.out.println(e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
-
-                ((Map) newInstance).put(newEntiyKey, newEntiyValue);
+                ((Map) newInstance).put(
+                        CloneMachine.safeClone(entry.getKey(), instanceRecords, ignoreException),
+                        CloneMachine.safeClone(entry.getValue(), instanceRecords, ignoreException));
             }
         } else {
-            Field[] fields = null;
-            if (false == CloneMachine.fields.containsKey(clazz)) {
+            Field[] fields;
+            if (!CloneMachine.fields.containsKey(clazz)) {
                 fields = clazz.getDeclaredFields();
                 CloneMachine.fields.put(clazz, fields);
             }
             fields = CloneMachine.fields.get(clazz);
             for (Field field : fields) {
-                if (true == Modifier.isFinal(field.getModifiers()) || true == Modifier.isStatic(field.getModifiers())) {
+                if (Modifier.isFinal(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) {
                     continue;
                 }
                 // TODO Annotation check
                 // Annotation[] annotations= field.getAnnotations();
 
                 field.setAccessible(true);
-
                 Object fieldValue = field.get(instance);
-                Object newFieldValue = fieldValue;
-                try {
-                    newFieldValue = CloneMachine.clone(fieldValue, instanceRecords, ignoreException);
-                } catch (Exception e) {
-                    if (true == ignoreException) {
-                        System.out.println(e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
 
-                field.set(newInstance, newFieldValue);
+                field.set(newInstance, CloneMachine.safeClone(fieldValue, instanceRecords, ignoreException));
             }
         }
 
         return newInstance;
+    }
+
+    private static <T> T safeClone(T instance, Set<Object> instanceRecords, boolean ignoreException) throws Exception {
+        try {
+            return CloneMachine.clone(instance, instanceRecords, ignoreException);
+        } catch (Exception e) {
+            if (ignoreException) {
+                System.out.println(e.getMessage());
+                return instance;
+            } else {
+                throw e;
+            }
+        }
     }
 }
