@@ -16,6 +16,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -38,6 +40,16 @@ public abstract class RZHelper {
     private static List<String> ipV4s = null;
     public final static Set<String> baseMethodNames =
             new HashSet<>(Arrays.asList("getClass", "toString", "equals", "hashCode", "notify", "notifyAll", "wait"));
+    private final static List<String> dateFormats = Arrays.asList(
+            "d MMM yyyy HH:mm:ss 'GMT'",
+            "yyyy-MM-dd",
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm:ss.SSS",
+            "yyyy-MM-dd HH:mm:ss.SSSZ",
+            "yyyy/MM/dd",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy/MM/dd HH:mm:ss.SSS",
+            "yyyy/MM/dd HH:mm:ss.SSSZ");
 
     public static boolean isBaseClazz(Class<?> clazz) {
         Assert.isNotNull(clazz, "clazz");
@@ -412,5 +424,50 @@ public abstract class RZHelper {
         // ConcurrentHashMap's putIfAbsent is thread safety
         // failed to put then return null, or return value
         return o -> null == map.putIfAbsent(keyExtractor.apply(o), Boolean.TRUE);
+    }
+
+    public static Object toObject(Class clazz, String value) {
+        Assert.isNotNull(clazz, "clazz");
+
+        if (boolean.class.equals(clazz) || Boolean.class.equals(clazz)) {
+            return Boolean.valueOf(value);
+        } else if (short.class.equals(clazz) || Short.class.equals(clazz)) {
+            return Short.valueOf(value);
+        } else if (int.class.equals(clazz) || Integer.class.equals(clazz)) {
+            return Integer.valueOf(value);
+        } else if (long.class.equals(clazz) || Long.class.equals(clazz)) {
+            return Long.valueOf(value);
+        } else if (float.class.equals(clazz) || Float.class.equals(clazz)) {
+            return Float.valueOf(value);
+        } else if (double.class.equals(clazz) || Double.class.equals(clazz)) {
+            return Double.valueOf(value);
+        } else if (char.class.equals(clazz) || Character.class.equals(clazz)) {
+            return value.charAt(0);
+        } else if (byte.class.equals(clazz) || Byte.class.equals(clazz)) {
+            return Byte.valueOf(value);
+        } else if (String.class.equals(clazz)) {
+            return value;
+        } else if (clazz.isEnum()) {
+            return Enum.valueOf(clazz, value);
+        } else if (Date.class.equals(clazz)) {
+            List<String> dateFormats = RZHelper.dateFormats;
+            for (String dateFormat : dateFormats) {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.getDefault());
+                try {
+                    return simpleDateFormat.parse(value);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            try {
+                return new Date(Long.valueOf(value));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                throw new IllegalArgumentException("Cannot convert to date with default date format.");
+            }
+        }
+
+        throw new IllegalArgumentException(String.format("Cannot resolve class(%s).", clazz.getName()));
     }
 }
