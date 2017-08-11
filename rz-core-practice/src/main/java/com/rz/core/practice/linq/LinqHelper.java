@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.rz.core.RZHelper;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -56,7 +57,10 @@ public class LinqHelper {
         }
 
         // distinct
-        monitorDtos = monitorDtos.stream().filter(RZHelper.distinctByKey(o -> o.isPBool())).collect(Collectors.toList());
+        //monitorDtos = monitorDtos.stream().filter(RZHelper.distinctByKey(o -> o.isPBool())).collect(Collectors.toList());
+        // o -> o == Function.identity()
+        // (k1, k2) -> k2) for when dup key, then use k1 or k2
+        Map<Boolean, MonitorDto> map = monitorDtos.stream().collect(Collectors.toMap(MonitorDto::isPBool, o -> o, (k1, k2) -> k2));
 
         // mix: this = OrderBy(o => o.bool).ThenByDescending(o => o.int)
         List<MonitorDto> monitorDtosMix = monitorDtos.stream().sorted((o1, o2) -> Integer.compare(o1.getAge(), o2.getAge()))
