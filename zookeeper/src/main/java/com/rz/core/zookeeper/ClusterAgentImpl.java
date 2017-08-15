@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.rz.core.Assert;
 import com.rz.core.Tuple2;
 import com.rz.core.RZHelper;
+import com.rz.core.zookeeper.event.ItemsChangedEvent;
+import com.rz.core.zookeeper.event.MasterChangedEvent;
 import com.rz.core.zookeeper.event.ZooKeeperEvent;
 import com.rz.core.zookeeper.listener.*;
 import org.apache.commons.lang3.StringUtils;
@@ -16,11 +18,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
 
 /**
  * Created by renjie.zhang on 8/14/2017.
  */
-public class ZooKeeperAgentImpl implements ZooKeeperAgent {
+public class ClusterAgentImpl implements ClusterAgent {
     private final static Charset charset = Charset.forName("UTF-8");
     private final static Object lock = new Object();
     private static Map<String, ClusterLock> clusterLocks = new ConcurrentHashMap<>();
@@ -32,18 +35,17 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
     private String ip;
     private String lockValue;
     private ZooKeeperMaintainer zooKeeperMaintainer;
-    private ClusterItem clusterItem;
+    private ClusterItem current;
+    private ClusterItem master;
     private List<ClusterItem> clusterItems;
     private boolean isConnected;
 
-    private NodeValueChangedListener nodeValueChangedListener;
-    private NodeChildrenChangedListener nodeChildrenChangedListener;
     private ItemsChangedListener itemsChangedListener;
     private MasterChangedListener masterChangedListener;
-    private ZooKeeperListener connectedListener;
-    private ZooKeeperListener disconnectedListener;
+    private ZooKeeperListener<ZooKeeperEvent> connectedListener;
+    private ZooKeeperListener<ZooKeeperEvent> disconnectedListener;
 
-    public ZooKeeperAgentImpl(
+    public ClusterAgentImpl(
             String connectString,
             String rootPath,
             String applicationId,
@@ -57,11 +59,11 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
         this.applicationVersion = applicationVersion;
         this.ip = RZHelper.getIpV4();
         this.lockValue = this.ip + "_" + String.valueOf(RZHelper.getCurrentProcessId());
-        this.clusterItem = new ClusterItem();
-        this.clusterItem.setIp(this.ip);
-        this.clusterItem.setCreatedTime(new Date().getTime());
+        this.current = new ClusterItem();
+        this.current.setIp(this.ip);
+        this.current.setCreatedTime(new Date().getTime());
         this.clusterItems = new ArrayList<>();
-        this.clusterItems.add(this.clusterItem);
+        this.clusterItems.add(this.current);
         this.isConnected = false;
 
         this.zooKeeperMaintainer = new ZooKeeperMaintainer(
@@ -94,15 +96,15 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
         return rootPath;
     }
 
-    private void processWatch(Tuple2<WatchedEvent, ZooKeeper> tuple) {
+    private void processWatch(Tuple2<WatchedEvent, ZooKeeper> tuple) throws KeeperException, InterruptedException {
         WatchedEvent watchedEvent = tuple.getItem1();
         ZooKeeper zooKeeper = tuple.getItem2();
 
         int queueCount;
         if (Watcher.Event.KeeperState.Disconnected != watchedEvent.getState()
-                && 0 < (queueCount = ZooKeeperAgentImpl.dirtyClusterLockPaths.size())) {
+                && 0 < (queueCount = ClusterAgentImpl.dirtyClusterLockPaths.size())) {
             for (int i = 0; i < queueCount; i++) {
-                String lockPath = ZooKeeperAgentImpl.dirtyClusterLockPaths.poll();
+                String lockPath = ClusterAgentImpl.dirtyClusterLockPaths.poll();
                 if (null == lockPath) {
                     break;
                 } else {
@@ -143,22 +145,20 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
                 }
             }
         } else if (Watcher.Event.EventType.NodeDataChanged == watchedEvent.getType()) {
-//            this.FireConfigFileChangedEvent(zooKeeper);
+
         } else if (Watcher.Event.EventType.NodeChildrenChanged == watchedEvent.getType()) {
-
-//            this.FireInstancesChangedEvent(zooKeeper);
-//            this.FireMsaterChangedEvent(zooKeeper);
-
+            this.fireItemsChangedEvent(zooKeeper);
+            this.fireMasterChangedEvent(zooKeeper);
         } else if (Watcher.Event.EventType.NodeCreated == watchedEvent.getType()) {
             String path = watchedEvent.getPath();
             if (path.startsWith(this.resolvePath(PathTypeEnum.LOCK))) {
-                if (ZooKeeperAgentImpl.clusterLocks.containsKey(path)) {
+                if (ClusterAgentImpl.clusterLocks.containsKey(path)) {
                     try {
                         byte[] bytes = zooKeeper.getData(path, false, new Stat());
                         if (null == bytes) {
                             return;
                         }
-                        String value = new String(bytes, ZooKeeperAgentImpl.charset);
+                        String value = new String(bytes, ClusterAgentImpl.charset);
                         if (!this.lockValue.equals(value)) {
                             zooKeeper.exists(path, true);
                         }
@@ -170,8 +170,8 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
             }
         } else if (Watcher.Event.EventType.NodeDeleted == watchedEvent.getType()) {
             String path = watchedEvent.getPath();
-            if (ZooKeeperAgentImpl.clusterLocks.containsKey(path)) {
-                ClusterLock clusterLock = ZooKeeperAgentImpl.clusterLocks.get(path);
+            if (ClusterAgentImpl.clusterLocks.containsKey(path)) {
+                ClusterLock clusterLock = ClusterAgentImpl.clusterLocks.get(path);
                 if (null == clusterLock || null == clusterLock.getSemaphore()) {
                     return;
                 }
@@ -194,29 +194,13 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
         zooKeeper.getChildren(this.resolvePath(PathTypeEnum.VERSION), true);
 
         // Item
-        String json = JSON.toJSONString(this.clusterItem);
+        String json = JSON.toJSONString(this.current);
         String path = zooKeeper.create(
                 this.resolvePath(PathTypeEnum.ITEM),
-                json.getBytes(ZooKeeperAgentImpl.charset),
+                json.getBytes(ClusterAgentImpl.charset),
                 ZooDefs.Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT);
-        this.clusterItem.setPath(path);
-    }
-
-    @Override
-    public void listenNodeValueChanged(String path, NodeValueChangedListener listener) {
-        Assert.isNotBlank(path, "path");
-        Assert.isNotNull(listener, "listener");
-
-        this.nodeValueChangedListener = listener;
-    }
-
-    @Override
-    public void listenNodeChildrenChanged(String path, NodeChildrenChangedListener listener) {
-        Assert.isNotBlank(path, "path");
-        Assert.isNotNull(listener, "listener");
-
-        this.nodeChildrenChangedListener = listener;
+        this.current.setPath(path);
     }
 
     @Override
@@ -254,7 +238,7 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
 
     @Override
     public ClusterItem getCurrent() {
-        return this.clusterItem;
+        return this.current;
     }
 
     @Override
@@ -268,8 +252,8 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
     }
 
     @Override
-    public void acquireLock(String lockName) {
-
+    public void acquireLock(String lockName) throws KeeperException, InterruptedException {
+        acquireLock(lockName, Integer.MAX_VALUE);
     }
 
     @Override
@@ -281,23 +265,23 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
 
         String path = this.resolvePath(PathTypeEnum.LOCK) + "/" + lockName;
 
-        if (!ZooKeeperAgentImpl.clusterLocks.containsKey(path)) {
-            synchronized (ZooKeeperAgentImpl.lock) {
-                if (!ZooKeeperAgentImpl.clusterLocks.containsKey(path)) {
+        if (!ClusterAgentImpl.clusterLocks.containsKey(path)) {
+            synchronized (ClusterAgentImpl.lock) {
+                if (!ClusterAgentImpl.clusterLocks.containsKey(path)) {
                     ClusterLock clusterLock = new ClusterLock();
                     clusterLock.setSemaphore(new Semaphore(1));
-                    ZooKeeperAgentImpl.clusterLocks.put(path, clusterLock);
+                    ClusterAgentImpl.clusterLocks.put(path, clusterLock);
                 }
             }
         }
-        ClusterLock clusterLock = ZooKeeperAgentImpl.clusterLocks.get(path);
+        ClusterLock clusterLock = ClusterAgentImpl.clusterLocks.get(path);
 
         Stat state = this.zooKeeperMaintainer.getZooKeeper().exists(path, true);
         if (null == state) {
             try {
                 this.zooKeeperMaintainer.getZooKeeper().create(
                         path,
-                        this.lockValue.getBytes(ZooKeeperAgentImpl.charset),
+                        this.lockValue.getBytes(ClusterAgentImpl.charset),
                         ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
                 clusterLock.setCreatedTime(System.currentTimeMillis());
 
@@ -305,7 +289,7 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
             } catch (KeeperException.NodeExistsException nodeExistsException) {
                 byte[] bytes = this.zooKeeperMaintainer.getZooKeeper().getData(path, false, new Stat());
                 if (null != bytes) {
-                    String value = new String(bytes, ZooKeeperAgentImpl.charset);
+                    String value = new String(bytes, ClusterAgentImpl.charset);
                     if (this.lockValue.equals(value)) {
                         return;
                     }
@@ -318,7 +302,7 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
 
         this.zooKeeperMaintainer.getZooKeeper().create(
                 path,
-                this.lockValue.getBytes(ZooKeeperAgentImpl.charset),
+                this.lockValue.getBytes(ClusterAgentImpl.charset),
                 ZooDefs.Ids.OPEN_ACL_UNSAFE,
                 CreateMode.EPHEMERAL);
         clusterLock.setCreatedTime(System.currentTimeMillis());
@@ -329,13 +313,18 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
         this.releaseLock(this.zooKeeperMaintainer.getZooKeeper(), lockName);
     }
 
+    @Override
+    public ZooKeeperMaintainer getZooKeeperMaintainer() {
+        return this.zooKeeperMaintainer;
+    }
+
     private void releaseLock(ZooKeeper zooKeeper, String lockPath) {
         if (StringUtils.isBlank(lockPath)) {
             return;
         }
 
-        if (ZooKeeperAgentImpl.clusterLocks.containsKey(lockPath)) {
-            ClusterLock clusterLock = ZooKeeperAgentImpl.clusterLocks.get(lockPath);
+        if (ClusterAgentImpl.clusterLocks.containsKey(lockPath)) {
+            ClusterLock clusterLock = ClusterAgentImpl.clusterLocks.get(lockPath);
             if (null == clusterLock) {
                 return;
             }
@@ -349,7 +338,7 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
                         return;
                     }
 
-                    String value = new String(bytes, ZooKeeperAgentImpl.charset);
+                    String value = new String(bytes, ClusterAgentImpl.charset);
                     if (this.lockValue.equals(value)) {
                         zooKeeper.delete(lockPath, -1);
                     }
@@ -357,22 +346,12 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
             } catch (KeeperException.NoNodeException noNodeException) {
                 // ignore
             } catch (Throwable throwable) {
-                ZooKeeperAgentImpl.dirtyClusterLockPaths.add(lockPath);
+                ClusterAgentImpl.dirtyClusterLockPaths.add(lockPath);
 
                 // log
                 System.out.println(String.format("Failed to release cluster lock(%s).", lockPath));
             }
         }
-    }
-
-    @Override
-    public void Start() {
-
-    }
-
-    @Override
-    public void Stop() {
-
     }
 
     private String resolvePath(PathTypeEnum pathType) {
@@ -422,7 +401,7 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
             try {
                 zooKeeper.create(
                         path,
-                        value.getBytes(ZooKeeperAgentImpl.charset),
+                        value.getBytes(ClusterAgentImpl.charset),
                         ZooDefs.Ids.OPEN_ACL_UNSAFE,
                         CreateMode.PERSISTENT);
             } catch (KeeperException.NodeExistsException nodeExistsException) {
@@ -431,27 +410,95 @@ public class ZooKeeperAgentImpl implements ZooKeeperAgent {
         }
     }
 
-//    private String getOrCreateZNodeValue(ZooKeeper zooKeeper, String zNodePath)
-//            throws KeeperException, InterruptedException {
-//        String value = null;
-//        Stat state = zooKeeper.exists(zNodePath, false);
-//        if (null == state) {
-//            try {
-//                value = String.valueOf(System.currentTimeMillis());
-//                zooKeeper.create(zNodePath, value.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-//            } catch (KeeperException.NodeExistsException nodeExistsException) {
-//                // ignore it
-//            }
-//        }
-//        if (null == value) {
-//            byte[] bytes = zooKeeper.getData(zNodePath, false, state);
-//            if (null == bytes) {
-//                value = null;
-//            } else {
-//                value = new String(bytes, ZooKeeperAgentImpl.charset);
-//            }
-//        }
-//
-//        return value;
-//    }
+    private void fireItemsChangedEvent(ZooKeeper zooKeeper) throws KeeperException, InterruptedException {
+        String versionPath = this.resolvePath(PathTypeEnum.VERSION);
+        List<String> itemPaths = zooKeeper.getChildren(versionPath, true);
+
+        if (RZHelper.isEmptyCollection(itemPaths)) {
+            return;
+        }
+        final List<String> finalItemPaths = itemPaths
+                .stream()
+                .map(o -> versionPath + "/" + o)
+                .collect(Collectors.toList());
+        if (this.clusterItems.size() == itemPaths.size() &&
+                this.clusterItems.stream().allMatch(i -> finalItemPaths.stream().anyMatch(p -> p.equals(i.getPath())))) {
+            return;
+        }
+
+        List<ClusterItem> clusterItems = new ArrayList<>();
+        for (String itemPath : itemPaths) {
+            ClusterItem clusterItem;
+            try {
+                clusterItem = this.getClusterItem(zooKeeper, itemPath);
+            } catch (Exception exception) {
+                System.out.println(String.format("Failed to get cluster item with path(%s).", itemPath));
+                // log
+                continue;
+            }
+            if (null == clusterItem) {
+                System.out.println(String.format("Failed to get cluster item with path(%s).", itemPath));
+                // log
+                continue;
+            }
+
+            clusterItems.add(clusterItem);
+        }
+        this.clusterItems = clusterItems;
+
+        if (null != this.itemsChangedListener) {
+            ItemsChangedEvent itemsChangedEvent = new ItemsChangedEvent(this.clusterItems);
+            try {
+                this.itemsChangedListener.onZooKeeperEvent(this, itemsChangedEvent);
+            } catch (Exception exception) {
+                System.out.println("Failed to invoke event [ItemsChanged].");
+                // log
+            }
+        }
+    }
+
+    private void fireMasterChangedEvent(ZooKeeper zooKeeper) throws KeeperException, InterruptedException {
+        String versionPath = this.resolvePath(PathTypeEnum.VERSION);
+        List<String> itemPaths = zooKeeper.getChildren(versionPath, true);
+
+        if (RZHelper.isEmptyCollection(itemPaths)) {
+            return;
+        }
+
+        String itemPath = versionPath + "/" + itemPaths.stream().sorted().findFirst().orElse("");
+        if (null == this.master || !itemPath.equals(this.master.getPath())) {
+            ClusterItem clusterItem = this.getClusterItem(zooKeeper, itemPath);
+            if(null == clusterItem){
+                System.out.println(String.format("Failed to get cluster item with path(%s).", itemPath));
+                return;
+            }
+
+            this.master = clusterItem;
+            if (null != this.masterChangedListener) {
+                MasterChangedEvent masterChangedEvent = new MasterChangedEvent(this.master);
+                try {
+                    this.masterChangedListener.onZooKeeperEvent(this, masterChangedEvent);
+                } catch (Throwable throwable) {
+                    System.out.println(String.format("Failed to invoke event [MasterChanged].", itemPath));
+                    // log
+                }
+            }
+        }
+    }
+
+    private ClusterItem getClusterItem(ZooKeeper zooKeeper, String path) throws KeeperException, InterruptedException {
+        if (StringUtils.isBlank(path)) {
+            return null;
+        }
+
+        byte[] bytes = zooKeeper.getData(path, false, new Stat());
+        if (null == bytes) {
+            return null;
+        }
+        String value = new String(bytes, ClusterAgentImpl.charset);
+        ClusterItem clusterItem = JSON.parseObject(value, ClusterItem.class);
+        clusterItem.setPath(path);
+
+        return clusterItem;
+    }
 }

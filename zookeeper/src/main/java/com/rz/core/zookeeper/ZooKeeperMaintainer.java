@@ -18,14 +18,14 @@ import org.apache.zookeeper.ZooKeeper;
 /**
  * Created by renjie.zhang on 8/14/2017.
  */
-class ZooKeeperMaintainer implements Watcher, Closeable {
+public class ZooKeeperMaintainer implements Watcher, Closeable {
     private boolean isDisposed;
     private boolean isInitialized;
     private String connectString;
     private int sessionTimeout;
     private ZooKeeper zooKeeper;
     private Consumer<ZooKeeper> initializeCallback;
-    private Consumer<Tuple2<WatchedEvent, ZooKeeper>> _processCallback;
+    private Consumer<Tuple2<WatchedEvent, ZooKeeper>> processCallback;
     private ReadWriteLock readWriteLock;
 
     public ZooKeeper getZooKeeper() {
@@ -50,7 +50,7 @@ class ZooKeeperMaintainer implements Watcher, Closeable {
         this.connectString = connectString;
         this.sessionTimeout = sessionTimeout;
         this.initializeCallback = initializeCallback;
-        this._processCallback = processCallback;
+        this.processCallback = processCallback;
 
         this.isInitialized = true;// for block event SyncConnected in method Process at the same time
         this.zooKeeper = new ZooKeeper(this.connectString, this.sessionTimeout, this);
@@ -108,14 +108,14 @@ class ZooKeeperMaintainer implements Watcher, Closeable {
             }
         }
 
-        if (null != this._processCallback && !hasException) {
+        if (null != this.processCallback && !hasException) {
             try {
-                this._processCallback.accept(new Tuple2<>(watchedEvent, this.zooKeeper));
+                this.processCallback.accept(new Tuple2<>(watchedEvent, this.zooKeeper));
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
 
                 // log
-                System.out.println("Failed to invoke [_processCallback].");
+                System.out.println(String.format("Failed to invoke [processCallback] with type(%s) and state(%s).", watchedEvent.getType(), watchedEvent.getState()));
             }
         }
     }
@@ -128,7 +128,7 @@ class ZooKeeperMaintainer implements Watcher, Closeable {
                 break;
             }
 
-            ZGHelper.saftSleep(1);
+            RZHelper.saftSleep(1);
         }
 
         return flag;

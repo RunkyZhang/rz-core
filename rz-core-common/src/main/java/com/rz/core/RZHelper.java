@@ -2,6 +2,7 @@ package com.rz.core;
 
 import java.io.Closeable;
 import java.io.UnsupportedEncodingException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -316,30 +317,27 @@ public abstract class RZHelper {
     }
 
     public static String getIpV4() throws SocketException {
+        String defaultIpV4 = "127.0.0.1";
         if (null != RZHelper.ipV4s) {
-            return RZHelper.ipV4s.get(0);
+            return RZHelper.ipV4s.stream().filter(o -> !o.equals(defaultIpV4)).findFirst().orElse(defaultIpV4);
         }
 
         List<String> hostAddresses = new ArrayList<>();
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         InetAddress inetAddress;
         while (networkInterfaces.hasMoreElements()) {
-            NetworkInterface networkInterface = (NetworkInterface) networkInterfaces.nextElement();
+            NetworkInterface networkInterface = networkInterfaces.nextElement();
             Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
             while (inetAddresses.hasMoreElements()) {
-                inetAddress = (InetAddress) inetAddresses.nextElement();
+                inetAddress = inetAddresses.nextElement();
                 if (null != inetAddress && inetAddress instanceof Inet4Address) {
-                    String hostAddress = inetAddress.getHostAddress();
-                    if (hostAddress.equals("127.0.0.1")) {
-                        continue;
-                    }
-                    hostAddresses.add(hostAddress);
+                    hostAddresses.add(inetAddress.getHostAddress());
                 }
             }
         }
-
         RZHelper.ipV4s = hostAddresses;
-        return hostAddresses.get(0);
+        
+        return RZHelper.ipV4s.stream().filter(o -> !o.equals(defaultIpV4)).findFirst().orElse(defaultIpV4);
     }
 
     @SuppressWarnings("rawtypes")
@@ -469,5 +467,28 @@ public abstract class RZHelper {
         }
 
         throw new IllegalArgumentException(String.format("Cannot resolve class(%s).", clazz.getName()));
+    }
+	
+	public static void saftSleep(long millis){
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+	
+	public static void saftClose(Closeable closeable) {
+        if (null == closeable) {
+            return;
+        }
+        try {
+            closeable.close();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
+	
+	public static int getCurrentProcessId() {
+        return Integer.valueOf(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
     }
 }
