@@ -11,18 +11,20 @@ import java.lang.reflect.Modifier;
  * Created by Runky on 8/3/2017.
  */
 public class ExecutantInterceptor implements MethodInterceptor {
+    private static MethodInterceptor methodInterceptor;
+
     @Override
     public Object intercept(Object instance, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
         if (Modifier.isPublic(method.getModifiers()) && !RZHelper.baseMethodNames.contains(method.getName())) {
-            long timestamp = System.currentTimeMillis();
-
-            System.out.println(String.format("Start: %s.", method.getName()));
-            Object result = methodProxy.invokeSuper(instance, args);
-            System.out.println(String.format("End(%s): %s.", System.currentTimeMillis() - timestamp, method.getName()));
-
-            return result;
+            return ExecutantInterceptor.methodInterceptor.intercept(instance, method, args, methodProxy);
         } else {
             return methodProxy.invokeSuper(instance, args);
+        }
+    }
+
+    public static void register(MethodInterceptor methodInterceptor) {
+        if (null != methodInterceptor && null == ExecutantInterceptor.methodInterceptor) {
+            ExecutantInterceptor.methodInterceptor = methodInterceptor;
         }
     }
 }

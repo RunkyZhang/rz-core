@@ -5,6 +5,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
@@ -539,6 +540,14 @@ public class Executant<T> {
         IndexOptions indexOptions = new IndexOptions();
         indexOptions.background(true);
         mongoCollection.createIndex(isAscending ? Indexes.ascending(fieldName) : Indexes.descending(fieldName), indexOptions);
+    }
+
+    public DatabaseStatus getDatabaseStatus(MongoDatabase mongoDatabase) {
+        Assert.isNotNull(mongoDatabase, "mongoDatabase");
+
+        Document command = new Document();
+        command.put("dbstats", 1);
+        return new DatabaseStatus(mongoDatabase.runCommand(command));
     }
 
     private FindIterable buildFindIterable(

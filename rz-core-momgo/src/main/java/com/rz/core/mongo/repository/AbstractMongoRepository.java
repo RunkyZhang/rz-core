@@ -252,4 +252,9 @@ public abstract class AbstractMongoRepository<T> implements MongoRepository<T> {
     public void createIndex(String fieldName, boolean isAscending) {
         this.executant.createIndex(this.getMongoCollection(), fieldName, isAscending);
     }
+
+    @Override
+    public DatabaseStatus getDatabaseStatus() {
+        return this.executant.getDatabaseStatus(this.getMongoDatabase());
+    }
 }

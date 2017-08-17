@@ -273,4 +273,9 @@ public abstract class AbstractShardingMongoRepository<TPo, TSharding>
     public void createIndex(TSharding parameter, String fieldName, boolean isAscending) {
         this.executant.createIndex(this.getMongoCollection(parameter), fieldName, isAscending);
     }
+
+    @Override
+    public DatabaseStatus getDatabaseStatus(TSharding parameter) {
+        return this.executant.getDatabaseStatus(this.getMongoDatabase(parameter));
+    }
 }

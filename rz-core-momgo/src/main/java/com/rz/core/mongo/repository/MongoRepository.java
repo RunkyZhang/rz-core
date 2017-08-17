@@ -72,4 +72,6 @@ public interface MongoRepository<T> {
     long count(Bson filter);
 
     void createIndex(String fieldName, boolean isAscending);
+
+    DatabaseStatus getDatabaseStatus();
 }

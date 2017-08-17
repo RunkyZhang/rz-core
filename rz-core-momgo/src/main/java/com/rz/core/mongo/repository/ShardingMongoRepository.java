@@ -72,5 +72,7 @@ public interface ShardingMongoRepository<TPo, TSharding> {
     long count(TSharding parameter, Bson filter);
 
     void createIndex(TSharding parameter, String fieldName, boolean isAscending);
+
+    DatabaseStatus getDatabaseStatus(TSharding parameter);
 }
 
