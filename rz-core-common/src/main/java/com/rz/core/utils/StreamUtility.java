@@ -1,9 +1,9 @@
 package com.rz.core.utils;
 
+import com.rz.core.Assert;
+
 import java.io.*;
 import java.nio.charset.Charset;
-
-import com.rz.core.Assert;
 
 public class StreamUtility {
     private static final int BUFFER_SIZE = 4096;
@@ -29,6 +29,16 @@ public class StreamUtility {
 
     public static void writeFileAllText(String pathName, String contents, Charset charset) throws IOException {
         StreamUtility.writeFileAllText(pathName, contents, charset, false);
+    }
+
+    public static void writeFile(String pathName, byte[] bytes) throws IOException {
+        Assert.isNotBlank(pathName, "pathName");
+        Assert.isNotNull(bytes, "bytes");
+
+        File file = new File(pathName);
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+            fileOutputStream.write(bytes);
+        }
     }
 
     public static byte[] getFileBytes(String pathName) throws IOException {
