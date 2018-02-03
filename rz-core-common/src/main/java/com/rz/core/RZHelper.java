@@ -1,16 +1,17 @@
 package com.rz.core;
 
-import java.io.Closeable;
-import java.io.UnsupportedEncodingException;
+import com.rz.core.excpetion.AggregateException;
+import org.apache.commons.lang3.ArrayUtils;
+
+import javax.crypto.*;
+import javax.crypto.spec.DESKeySpec;
+import javax.crypto.spec.IvParameterSpec;
+import java.io.*;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -23,17 +24,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESKeySpec;
-import javax.crypto.spec.IvParameterSpec;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 public abstract class RZHelper {
     private final static byte[] PASSWORD_KEY = new byte[]{'h', 'j', 'n', 'o', 't', 'i', 'f', 'y'};
@@ -336,7 +326,7 @@ public abstract class RZHelper {
             }
         }
         RZHelper.ipV4s = hostAddresses;
-        
+
         return RZHelper.ipV4s.stream().filter(o -> !o.equals(defaultIpV4)).findFirst().orElse(defaultIpV4);
     }
 
@@ -468,16 +458,16 @@ public abstract class RZHelper {
 
         throw new IllegalArgumentException(String.format("Cannot resolve class(%s).", clazz.getName()));
     }
-	
-	public static void saftSleep(long millis){
+
+    public static void saftSleep(long millis) {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
-	
-	public static void saftClose(Closeable closeable) {
+
+    public static void saftClose(Closeable closeable) {
         if (null == closeable) {
             return;
         }
@@ -487,8 +477,70 @@ public abstract class RZHelper {
             throwable.printStackTrace();
         }
     }
-	
-	public static int getCurrentProcessId() {
+
+    public static int getCurrentProcessId() {
         return Integer.valueOf(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+    }
+
+    public static String formatExceptionMessage(Throwable throwable) {
+        if (null == throwable) {
+            return "";
+        }
+        if (null == throwable.getCause()) {
+            return throwable.getMessage();
+        }
+
+        return RZHelper.formatExceptionMessage(throwable, "", "");
+    }
+
+    private static String formatExceptionMessage(Throwable throwable, String message, String layer) {
+        if (null == throwable) {
+            return message;
+        }
+
+        message = null == message ? "" : message;
+        layer = null == layer ? "" : layer;
+        message += layer + (null == throwable.getMessage() ? "" : throwable.getMessage()) + "\r\n";
+        layer = "----" + layer;
+        if (throwable instanceof AggregateException) {
+            AggregateException aggregateException = (AggregateException) throwable;
+            if (null != aggregateException.getCauses()) {
+                for (Throwable cause : aggregateException.getCauses()) {
+                    message = RZHelper.formatExceptionMessage(cause, message, layer);
+                }
+            }
+        } else {
+            if (null != throwable.getCause()) {
+                message = RZHelper.formatExceptionMessage(throwable.getCause(), message, layer);
+            }
+        }
+
+        return message;
+    }
+
+    public static List<Class> getClassesByPackage(ClassLoader classLoader, String packageName) throws IOException {
+        Assert.isNotNull(classLoader, "classLoader");
+        Assert.isNotBlank(packageName, "packageName");
+
+        List<Class> classes = new ArrayList<>();
+        URL url = classLoader.getResource(packageName.replace('.', '/'));
+        if (null == url) {
+            return null;
+        }
+
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader((InputStream) url.getContent()));
+        String line;
+        while (null != (line = bufferedReader.readLine())) {
+            if (line.endsWith(".class")) {
+                try {
+                    String className = packageName + "." + line.substring(0, line.length() - ".class".length());
+                    classes.add(Class.forName(className));
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return classes;
     }
 }

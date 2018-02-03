@@ -1,11 +1,5 @@
 package com.rz.core.practice.bytecode;
 
-import com.rz.core.utils.StreamUtility;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
-
-import java.io.IOException;
-
 /**
  * Created by Runky on 9/16/2017.
  * boolean Z
@@ -27,41 +21,10 @@ import java.io.IOException;
  */
 public class ByteCodeHelper {
     public static void main(String[] args) throws Exception {
-        StreamUtility.writeFile("E:/BCInstance.class", ByteCodeHelper.createInstance());
-    }
+        Thread.currentThread().setContextClassLoader(new ByteCodeClassLoader());
 
-    private static byte[] createInstance() throws IOException {
-        ClassWriter classWriter = new ClassWriter(0);
-        // version->java version
-        classWriter.visit(
-                Opcodes.V1_8,
-                Opcodes.ACC_PUBLIC + Opcodes.ACC_INTERFACE,
-                "com.rz.core.practice.bytecode.BCInterface",
-                null,
-                "java/lang/Object",
-                null);
-        // desc->type, value->default value
-        classWriter.visitField(
-                Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC,
-                "name",
-                "I", // type
-                null,
-                66).visitEnd();
-        // desc->type
-//        classWriter.visitMethod(
-//                Opcodes.ACC_PUBLIC,
-//                "run",
-//                "[I",
-//                null,
-//                new String[]{"java/io/IOException"}).visitEnd();
-        classWriter.visitMethod(
-                Opcodes.ACC_PUBLIC,
-                "compareTo",
-                "(IF)Ljava/lang/String;"
-                , null,
-                new String[]{"java/io/IOException"}).visitEnd();
-
-        classWriter.visitEnd();
-        return classWriter.toByteArray();
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        Class clazz = classLoader.loadClass(ByteCodeClassLoader.BCINTERFACE_NAME);
+//        StreamUtility.writeFile("D:/BCInstance.class", ByteCodeHelper.createInstance());
     }
 }
