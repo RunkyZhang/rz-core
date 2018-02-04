@@ -2,15 +2,7 @@ package com.rz.core.common.test;
 
 import com.rz.core.RZHelper;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
 public class RZHelperTest {
@@ -26,11 +18,10 @@ public class RZHelperTest {
         System.out.println("End HelperTest...");
     }
 
-    public void test() throws InvalidKeyException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException,
-            IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
-        String value = RZHelper.encrypt("asd");
+    public void test() throws Exception {
+        String value = RZHelper.encrypt("1111111122222222".getBytes(), "asd");
         System.out.println(value);
-        value = RZHelper.decrypt(value);
+        value = RZHelper.decrypt("1111111122222222".getBytes(), value);
         System.out.println(value);
     }
 

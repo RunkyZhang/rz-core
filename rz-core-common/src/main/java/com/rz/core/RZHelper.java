@@ -3,9 +3,11 @@ package com.rz.core;
 import com.rz.core.excpetion.AggregateException;
 import org.apache.commons.lang3.ArrayUtils;
 
-import javax.crypto.*;
-import javax.crypto.spec.DESKeySpec;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
@@ -13,11 +15,8 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -231,64 +230,6 @@ public abstract class RZHelper {
         }
 
         return Arrays.asList(ArrayUtils.toObject(array));
-    }
-
-    public static String encrypt(String value) throws InvalidKeyException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchPaddingException,
-            InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
-        Assert.isNotBlank(value, "value");
-
-        KeySpec keySpec = new DESKeySpec(PASSWORD_KEY);
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(PASSWORD_IV);
-        SecretKey secretKey = SecretKeyFactory.getInstance("DES").generateSecret(keySpec);
-
-        Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-
-        byte[] bytes = cipher.doFinal(value.getBytes(StandardCharsets.US_ASCII));
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < bytes.length; i++) {
-            String hex = Integer.toHexString(bytes[i] & 0xFF);
-            if (2 > hex.length()) {
-                // b -> 0b
-                stringBuilder.append(0);
-            }
-            stringBuilder.append(hex);
-        }
-
-        return stringBuilder.toString();
-    }
-
-    public static String decrypt(String value) throws InvalidKeyException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchPaddingException,
-            InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
-        Assert.isNotBlank(value, "value");
-
-        KeySpec keySpec = new DESKeySpec(PASSWORD_KEY);
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(PASSWORD_IV);
-        SecretKey secretKey = SecretKeyFactory.getInstance("DES").generateSecret(keySpec);
-
-        Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
-
-        byte[] bytes = cipher.doFinal(RZHelper.hexStringToByte(value));
-
-        return new String(bytes, StandardCharsets.US_ASCII);
-    }
-
-    public static byte[] hexStringToByte(String hexString) {
-        Assert.isNotBlank(hexString, "hexString");
-        Assert.isTrue(0 == hexString.length() % 2, "hexString.length() % 2");
-
-        hexString = hexString.toUpperCase();
-        int length = hexString.length() / 2;
-        char[] chars = hexString.toCharArray();
-        byte[] bytes = new byte[length];
-
-        for (int i = 0; i < length; i++) {
-            bytes[i] = (byte) ("0123456789ABCDEF".indexOf(chars[i * 2]) << 4 | "0123456789ABCDEF".indexOf(chars[i * 2 + 1]));
-        }
-
-        return bytes;
     }
 
     public static int getBKDRHashCode(String value) {
@@ -542,5 +483,64 @@ public abstract class RZHelper {
         }
 
         return classes;
+    }
+
+    public static String encrypt(byte[] password, String content) throws UnsupportedEncodingException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Assert.isTrue(null != password && 16 == password.length, "The password length must equals 16.");
+        Assert.isNotBlank(content, "content");
+
+        SecretKeySpec secretKeySpec = new SecretKeySpec(password, "AES");
+
+        // "算法/模式/补码方式"
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+        byte[] result = cipher.doFinal(content.getBytes(StandardCharsets.UTF_8));
+
+        return RZHelper.hexByteToString(result);
+    }
+
+    public static String decrypt(byte[] password, String content) throws Exception {
+        Assert.isTrue(null != password && 16 == password.length, "The password length must equals 16.");
+        Assert.isNotBlank(content, "content");
+
+        SecretKeySpec secretKeySpec = new SecretKeySpec(password, "AES");
+
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        byte[] result = cipher.doFinal(RZHelper.hexStringToByte(content));
+
+        return new String(result, StandardCharsets.UTF_8);
+    }
+
+    public static byte[] hexStringToByte(String hexString) {
+        Assert.isNotBlank(hexString, "hexString");
+        Assert.isTrue(0 == hexString.length() % 2, "hexString.length() % 2");
+
+        hexString = hexString.toUpperCase();
+        int length = hexString.length() / 2;
+        char[] chars = hexString.toCharArray();
+        byte[] bytes = new byte[length];
+
+        for (int i = 0; i < length; i++) {
+            bytes[i] = (byte) ("0123456789ABCDEF".indexOf(chars[i * 2]) << 4 | "0123456789ABCDEF".indexOf(chars[i * 2 + 1]));
+        }
+
+        return bytes;
+    }
+
+    public static String hexByteToString(byte[] bytes) {
+        Assert.isNotEmpty(bytes, "bytes");
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < bytes.length; i++) {
+            String hex = Integer.toHexString(bytes[i] & 0xFF);
+            if (2 > hex.length()) {
+                // b -> 0b
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hex);
+        }
+
+        return stringBuilder.toString();
     }
 }
