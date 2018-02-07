@@ -1,6 +1,6 @@
 package com.rz.core.async;
 
-import com.rz.core.function.ConsumerEx;
+import com.zhaogang.framework.common.function.ConsumerEx;
 
 /**
  * Created by renjie.zhang on 1/11/2018.
@@ -10,6 +10,8 @@ public class AsyncJob {
     private String name;
     private String type;
     private Object parameter;
+    // second
+    private long interval;
 
     public ConsumerEx<Object> getConsumer() {
         return consumer;
@@ -43,13 +45,18 @@ public class AsyncJob {
         this.type = type;
     }
 
+    public long getInterval() {
+        return interval;
+    }
+
     public AsyncJob(){
     }
 
-    public AsyncJob(String type, String name, ConsumerEx<Object> consumer, Object parameter){
+    public AsyncJob(String type, String name, ConsumerEx<Object> consumer, Object parameter, long interval){
         this.type = type;
         this.name = name;
         this.consumer = consumer;
         this.parameter = parameter;
+        this.interval = interval;
     }
 }

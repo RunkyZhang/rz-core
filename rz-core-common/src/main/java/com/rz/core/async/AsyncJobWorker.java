@@ -5,10 +5,10 @@ import java.io.Closeable;
 /**
  * Created by renjie.zhang on 1/11/2018.
  */
-public interface AsyncWorker extends Closeable {
+public interface AsyncJobWorker extends Closeable {
     boolean isDisposed();
 
-    AsyncWorker start();
+    AsyncJobWorker start();
 
     boolean add(AsyncJob job);
 }

@@ -1,8 +1,14 @@
 package com.rz.core.dao.access;
 
-import com.rz.core.Assert;
+import com.zhaogang.framework.common.Assert;
+import com.zhaogang.framework.common.async.AsyncJob;
+import com.zhaogang.framework.common.function.ConsumerEx;
+import com.zhaogang.framework.dal.SourcePool;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.support.JdbcUtils;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +27,8 @@ public class DataSourceSwitch {
     private Map<DataSource, DataSource> writeDataSources;
     private Map<DataSource, DataSource> readDataSources;
     private Random random;
-
+    private AsyncJob asyncJob;
+    private long syncRolesTimePoint;
 
     public DataSourceSwitch(List<DataSource> dataSources) {
         Assert.isNotEmpty(dataSources, "dataSources");
@@ -31,6 +38,21 @@ public class DataSourceSwitch {
         this.readDataSources = new ConcurrentHashMap<>();
         this.random = new Random();
         this.syncRoles();
+
+        SourcePool.asyncJobWorker.start();
+        SourcePool.asyncJobTrigger.start();
+        this.asyncJob = new AsyncJob(
+                DataSourceSwitch.class.getSimpleName(),
+                String.valueOf(this.hashCode()),
+                new ConsumerEx<Object>() {
+                    @Override
+                    public void accept(Object o) throws Throwable {
+                        syncRoles();
+                    }
+                },
+                null,
+                5);
+        SourcePool.asyncJobTrigger.add(asyncJob);
     }
 
     public DataSource getWriteDataSource(int retryTimes) {
@@ -63,13 +85,17 @@ public class DataSourceSwitch {
         return dataSource;
     }
 
+    public void syncRolesAsync() {
+        SourcePool.asyncJobWorker.add(this.asyncJob);
+    }
+
     private DataSource getWriteDataSource() {
         Object[] keys = this.writeDataSources.keySet().toArray();
         if (0 == keys.length) {
             return null;
         }
 
-        int index = this.random.nextInt() % keys.length;
+        int index = Math.abs(this.random.nextInt() % keys.length);
         Object key = keys[index];
         return this.writeDataSources.get(key);
     }
@@ -80,32 +106,45 @@ public class DataSourceSwitch {
             return null;
         }
 
-        int index = this.random.nextInt() % keys.length;
+        int index = Math.abs(this.random.nextInt() % keys.length);
         Object key = keys[index];
         return this.readDataSources.get(key);
     }
 
-    // error, job, get null
-    private void syncRoles() {
-        for (DataSource dataSource : this.dataSources) {
-            Integer status = null;
-            try {
-                PreparedStatement preparedStatement = dataSource.getConnection().prepareStatement(DataSourceSwitch.SQL);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                status = resultSet.getInt(DataSourceSwitch.COLUMN_LABEL);
-            } catch (SQLException e) {
-                e.printStackTrace();
+    // be invoked when get null or job or error
+    private synchronized void syncRoles() {
+        if (10 < System.currentTimeMillis() - this.syncRolesTimePoint) {
+            for (DataSource dataSource : this.dataSources) {
+                Integer status = null;
+                Connection connection = DataSourceUtils.getConnection(dataSource);
+                PreparedStatement preparedStatement = null;
+                try {
+                    preparedStatement = connection.prepareStatement(DataSourceSwitch.SQL);
+                    ResultSet resultSet = preparedStatement.executeQuery();
+                    while (resultSet.next()) {
+                        status = resultSet.getInt(DataSourceSwitch.COLUMN_LABEL);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    System.out.println("Failed to sync database role.");
+                } finally {
+                    JdbcUtils.closeStatement(preparedStatement);
+                    DataSourceUtils.releaseConnection(connection, dataSource);
+                }
+
+                if (null == status) {
+                    this.readDataSources.remove(dataSource);
+                    this.writeDataSources.remove(dataSource);
+                } else if (0 == status) {
+                    this.readDataSources.remove(dataSource);
+                    this.writeDataSources.put(dataSource, dataSource);
+                } else {
+                    this.writeDataSources.remove(dataSource);
+                    this.readDataSources.put(dataSource, dataSource);
+                }
             }
-            if (null == status) {
-                this.readDataSources.remove(dataSource);
-                this.writeDataSources.remove(dataSource);
-            } else if (0 == status) {
-                this.readDataSources.remove(dataSource);
-                this.writeDataSources.put(dataSource, dataSource);
-            } else {
-                this.writeDataSources.remove(dataSource);
-                this.readDataSources.put(dataSource, dataSource);
-            }
+
+            this.syncRolesTimePoint = System.currentTimeMillis();
         }
     }
 }

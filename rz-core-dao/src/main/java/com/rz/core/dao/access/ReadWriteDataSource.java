@@ -1,7 +1,7 @@
 package com.rz.core.dao.access;
 
-import com.rz.core.Assert;
-import com.rz.core.dao.excpetion.DaoException;
+import com.zhaogang.framework.common.Assert;
+import com.zhaogang.framework.dal.excpetion.DalException;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 import javax.sql.DataSource;
@@ -20,6 +20,10 @@ public class ReadWriteDataSource extends AbstractRoutingDataSource {
     private Random random;
     private DataSourceSwitch dataSourceSwitch;
 
+    public DataSourceSwitch getDataSourceSwitch() {
+        return dataSourceSwitch;
+    }
+
     public ReadWriteDataSource(DataSource... dataSources) {
         this(80, 1, dataSources);
     }
@@ -35,32 +39,11 @@ public class ReadWriteDataSource extends AbstractRoutingDataSource {
         this.dataSourceSwitch = new DataSourceSwitch(Arrays.asList(this.dataSources));
     }
 
-//    private DataSource dataSource() {
-//        DruidDataSource druidDataSource = new DruidDataSource();
-//        druidDataSource.setUrl("jdbc:mysql://10.0.84.123:3306/runkytest?characterEncoding=utf-8");
-//        druidDataSource.setUsername("root");
-//        druidDataSource.setPassword("147258");
-//        druidDataSource.setDriverClassName("com.mysql.jdbc.Driver");
-//
-//        return druidDataSource;
-//    }
-
     @Override
     public void afterPropertiesSet() {
         Map<Object, Object> targetDataSources = new HashMap<>();
         for (DataSource dataSource : dataSources) {
             targetDataSources.put(dataSource, dataSource);
-        }
-
-        if (this.dataSourceSwitch.getWriteDataSource(1) == null) {
-            throw new DaoException("Property 'writeDataSource' is required");
-        }
-
-        this.setDefaultTargetDataSource(this.dataSourceSwitch.getWriteDataSource(1));
-
-        targetDataSources.put("WRITE", this.dataSourceSwitch.getWriteDataSource(1));
-        if (null != this.dataSourceSwitch.getReadDataSource(1)) {
-            targetDataSources.put("READ", this.dataSourceSwitch.getReadDataSource(1));
         }
         this.setTargetDataSources(targetDataSources);
 
@@ -69,15 +52,9 @@ public class ReadWriteDataSource extends AbstractRoutingDataSource {
 
     @Override
     protected Object determineCurrentLookupKey() {
-//        DynamicDataSourceGlobal dynamicDataSourceGlobal = DynamicDataSourceHolder.getDataSource();
-//
-//        if (dynamicDataSourceGlobal == null || dynamicDataSourceGlobal == DynamicDataSourceGlobal.WRITE) {
-//            return DynamicDataSourceGlobal.WRITE.name();
-//        }
-
         DataSource key = null;
-        if ("READ".equalsIgnoreCase("")) {
-            int randomNumber = this.random.nextInt() % 100;
+        if (DataOperationTypeEnum.READ == ReadWriteDataSourceMessageHolder.getDataOperationType()) {
+            int randomNumber = Math.abs(this.random.nextInt() % 100);
             if (randomNumber < this.readRate) {
                 key = this.dataSourceSwitch.getReadDataSource(this.retryTimes);
             }
@@ -89,10 +66,9 @@ public class ReadWriteDataSource extends AbstractRoutingDataSource {
         }
 
         if (null == key) {
-            throw new DaoException("Cannot get valid [DataSource].");
+            throw new DalException("Cannot get valid [DataSource].");
         }
 
         return key;
     }
 }
-

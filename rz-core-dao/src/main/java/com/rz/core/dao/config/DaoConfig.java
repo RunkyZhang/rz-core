@@ -8,7 +8,7 @@ import javax.annotation.PostConstruct;
  * Created by Runky on 2/3/2018.
  */
 @Configuration
-public class DaoConfiguration {
+public class DaoConfig {
     @PostConstruct
     private void init() {
         System.out.println("==============================init");
