@@ -1,6 +1,6 @@
 package com.rz.core.dao.aop;
 
-import com.zhaogang.framework.dal.access.ReadWriteDataSourceMessageHolder;
+import com.rz.core.dao.access.ReadWriteDataSourceMessageHolder;
 import org.apache.ibatis.plugin.Invocation;
 
 import java.util.Map;

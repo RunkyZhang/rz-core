@@ -1,9 +1,9 @@
 package com.rz.core.dao.aop;
 
-import com.zhaogang.framework.dal.access.DataOperationTypeEnum;
-import com.zhaogang.framework.dal.access.ReadWriteDataSource;
-import com.zhaogang.framework.dal.access.ReadWriteDataSourceMessageHolder;
-import com.zhaogang.framework.dal.masking.DataMaskingTypeHandler;
+import com.rz.core.dao.access.DataOperationTypeEnum;
+import com.rz.core.dao.access.ReadWriteDataSource;
+import com.rz.core.dao.access.ReadWriteDataSourceMessageHolder;
+import com.rz.core.dao.masking.DataMaskingTypeHandler;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.Invocation;
 import org.springframework.transaction.support.TransactionSynchronizationManager;

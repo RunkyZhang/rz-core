@@ -1,7 +1,7 @@
 package com.rz.core.dao.access;
 
-import com.zhaogang.framework.common.Assert;
-import com.zhaogang.framework.dal.excpetion.DalException;
+import com.rz.core.Assert;
+import com.rz.core.dao.excpetion.DaoException;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 import javax.sql.DataSource;
@@ -66,7 +66,7 @@ public class ReadWriteDataSource extends AbstractRoutingDataSource {
         }
 
         if (null == key) {
-            throw new DalException("Cannot get valid [DataSource].");
+            throw new DaoException("Cannot get valid [DataSource].");
         }
 
         return key;

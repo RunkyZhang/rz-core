@@ -1,9 +1,9 @@
 package com.rz.core.dao.access;
 
-import com.zhaogang.framework.common.Assert;
-import com.zhaogang.framework.common.async.AsyncJob;
-import com.zhaogang.framework.common.function.ConsumerEx;
-import com.zhaogang.framework.dal.SourcePool;
+import com.rz.core.Assert;
+import com.rz.core.async.AsyncJob;
+import com.rz.core.function.ConsumerEx;
+import com.rz.core.dao.SourcePool;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.JdbcUtils;
 

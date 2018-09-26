@@ -4,7 +4,7 @@ package com.rz.core.dao.model;
  * Created by renjie.zhang on 2/2/2018.
  */
 
-import com.zhaogang.framework.dal.config.DalConfig;
+import com.rz.core.dao.config.DaoConfig;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;

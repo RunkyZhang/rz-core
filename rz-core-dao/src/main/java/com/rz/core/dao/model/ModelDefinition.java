@@ -1,7 +1,7 @@
 package com.rz.core.dao.model;
 
-import com.zhaogang.framework.common.Assert;
-import com.zhaogang.framework.common.ZGHelper;
+import com.rz.core.Assert;
+import com.rz.core.RZHelper;
 
 import javax.persistence.Table;
 import java.lang.annotation.Annotation;
@@ -55,7 +55,7 @@ public class ModelDefinition {
             }
         }
 
-        Field[] fields = ZGHelper.getDeclaredFields(this.modelClass);
+        Field[] fields = RZHelper.getDeclaredFields(this.modelClass);
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers())) {
                 ModelFieldDefinition modelFieldDefinition = new ModelFieldDefinition(this.modelClass, field);

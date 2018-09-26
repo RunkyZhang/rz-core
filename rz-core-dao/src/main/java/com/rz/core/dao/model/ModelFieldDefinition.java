@@ -1,7 +1,7 @@
 package com.rz.core.dao.model;
 
-import com.zhaogang.framework.common.Assert;
-import com.zhaogang.framework.dal.annotation.DataMasking;
+import com.rz.core.Assert;
+import com.rz.core.dao.annotation.DataMasking;
 
 import javax.persistence.Id;
 import java.beans.IntrospectionException;

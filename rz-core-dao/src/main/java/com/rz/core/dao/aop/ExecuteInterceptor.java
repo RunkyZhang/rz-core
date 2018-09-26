@@ -1,6 +1,6 @@
 package com.rz.core.dao.aop;
 
-import com.zhaogang.framework.common.Assert;
+import com.rz.core.Assert;
 import org.apache.ibatis.plugin.Invocation;
 
 /**

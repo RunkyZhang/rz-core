@@ -1,6 +1,6 @@
 package com.rz.core.async;
 
-import com.zhaogang.framework.common.function.ConsumerEx;
+import com.rz.core.function.ConsumerEx;
 
 /**
  * Created by renjie.zhang on 1/11/2018.

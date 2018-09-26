@@ -1,7 +1,7 @@
 package com.rz.core.async;
 
-import com.zhaogang.framework.common.Assert;
-import com.zhaogang.framework.common.Tuple2;
+import com.rz.core.Assert;
+import com.rz.core.Tuple2;
 
 import java.io.IOException;
 import java.util.Queue;

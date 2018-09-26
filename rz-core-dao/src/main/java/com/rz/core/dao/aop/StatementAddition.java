@@ -1,7 +1,7 @@
 package com.rz.core.dao.aop;
 
-import com.zhaogang.framework.common.Assert;
-import com.zhaogang.framework.dal.access.DataOperationTypeEnum;
+import com.rz.core.Assert;
+import com.rz.core.dao.access.DataOperationTypeEnum;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;

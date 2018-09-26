@@ -1,7 +1,7 @@
 package com.rz.core.dao.model;
 
-import com.zhaogang.framework.common.ZGHelper;
-import com.zhaogang.framework.dal.masking.DataMaskingTypeHandler;
+import com.rz.core.RZHelper;
+import com.rz.core.dao.masking.DataMaskingTypeHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.spring.mapper.ClassPathMapperScanner;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -38,7 +38,7 @@ public class ModelScannerRegistrar implements ImportBeanDefinitionRegistrar, Res
         List<Class> modelClasses = new ArrayList<>();
         for (String packageName : annotationAttributes.getStringArray("value")) {
             try {
-                List<Class> classes = ZGHelper.getClassesByPackage(Thread.currentThread().getContextClassLoader(), packageName);
+                List<Class> classes = RZHelper.getClassesByPackage(Thread.currentThread().getContextClassLoader(), packageName);
                 if (null != classes) {
                     modelClasses.addAll(classes);
                 }
