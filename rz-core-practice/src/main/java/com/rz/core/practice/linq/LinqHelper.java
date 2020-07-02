@@ -56,13 +56,13 @@ public class LinqHelper {
             monitorDtos.add(monitorDto);
         }
 
-        // distinct
+        // distinct；下面按照bool值去重
         //monitorDtos = monitorDtos.stream().filter(RZHelper.distinctByKey(o -> o.isPBool())).collect(Collectors.toList());
         // o -> o == Function.identity()
-        // (k1, k2) -> k2) for when dup key, then use k1 or k2
+        // (k1, k2) -> k2) for when dup key, then use k1 or k2；下面list转map，key是bool值，value是本身对象，如果key重复用后面的对象
         Map<Boolean, MonitorDto> map = monitorDtos.stream().collect(Collectors.toMap(MonitorDto::isPBool, o -> o, (k1, k2) -> k2));
 
-        // mix: this = OrderBy(o => o.bool).ThenByDescending(o => o.int)
+        // mix: this = OrderBy(o => o.bool).ThenByDescending(o => o.int)// 先通过bool排序后的结果通过int在排序
         List<MonitorDto> monitorDtosMix = monitorDtos.stream().sorted((o1, o2) -> Integer.compare(o1.getAge(), o2.getAge()))
                 .sorted((o1, o2) -> Boolean.compare(o2.isPBool(), o1.isPBool())).collect(Collectors.toList());
         monitorDtosMix = monitorDtos.stream().sorted((o1, o2) -> Integer.compare(o1.getAge(), o2.getAge()))
@@ -124,7 +124,7 @@ public class LinqHelper {
         Stream<MonitorDto> value11 = value10.flatMap(o -> o.stream());
 
         // reduce
-        // o1 previous object, o2 next object
+        // o1：第一次是第一个对象，第二次是返回的对象；o2：是下一个对象
         MonitorDto reduceMonitorDto = monitorDtos.stream().reduce((o1, o2) -> {
             MonitorDto temp = new MonitorDto();
             temp.setName(o1.getName() + o2.getName());
