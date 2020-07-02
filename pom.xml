@@ -17,7 +17,7 @@
         <guava.version>20.0</guava.version>
         <org.elasticsearch.version>2.4.2</org.elasticsearch.version>
         <org.projectlombok.version>1.16.10</org.projectlombok.version>
-        <com.alibaba-fastjson.version>1.2.21</com.alibaba-fastjson.version>
+        <com.alibaba-fastjson.version>1.2.25.sec10</com.alibaba-fastjson.version>
         <spring-data-redis.verion>1.7.5.RELEASE</spring-data-redis.verion>
         <org.apache.httpcomponents.version>4.5.2</org.apache.httpcomponents.version>
         <org.quartz-scheduler.version>2.2.1</org.quartz-scheduler.version>
