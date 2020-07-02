@@ -24,7 +24,7 @@
         <cglib.version>3.2.5</cglib.version>
         <rz-core.version>0.0.1-SNAPSHOT</rz-core.version>
         <org.apache.commons.lang3.version>3.5</org.apache.commons.lang3.version>
-        <org.apache.commons.collections4.version>4.0</org.apache.commons.collections4.version>
+        <org.apache.commons.collections4.version>4.1</org.apache.commons.collections4.version>
         <org.aspectj.version>1.8.10</org.aspectj.version>
         <org.apache.zookeeper.version>3.4.8</org.apache.zookeeper.version>
         <com.rabbitmq.version>4.0.0</com.rabbitmq.version>
