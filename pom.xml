@@ -42,7 +42,7 @@
         <com.google.protobuf-protobuf-java.version>3.2.0</com.google.protobuf-protobuf-java.version>
         <redis.clients-jedis.version>2.9.0</redis.clients-jedis.version>
         <commons-logging.version>1.2</commons-logging.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <org.mongodb-mongo-java-driver.version>3.4.2</org.mongodb-mongo-java-driver.version>
         <javax.servlet-api.version>2.5</javax.servlet-api.version>
     </properties>
