@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <guava.version>20.0</guava.version>
-        <org.elasticsearch.version>2.4.2</org.elasticsearch.version>
+        <org.elasticsearch.version>6.8.13</org.elasticsearch.version>
         <org.projectlombok.version>1.16.10</org.projectlombok.version>
         <com.alibaba-fastjson.version>1.2.21</com.alibaba-fastjson.version>
         <spring-data-redis.verion>1.7.5.RELEASE</spring-data-redis.verion>
