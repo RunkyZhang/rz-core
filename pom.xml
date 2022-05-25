@@ -32,7 +32,7 @@
         <org.apache.logging.log4j.version>2.7</org.apache.logging.log4j.version>
         <org.slf4j-api.version>1.7.22</org.slf4j-api.version>
         <org.apache.curator.curator-framework.version>2.11.1</org.apache.curator.curator-framework.version>
-        <org.springframework.version>4.3.7.RELEASE</org.springframework.version>
+        <org.springframework.version>5.2.22.RELEASE</org.springframework.version>
         <commons-logging.version>1.2</commons-logging.version>
         <com.alibaba-druid.version>1.0.29</com.alibaba-druid.version>
         <org.mybatis-mybatis.version>3.4.2</org.mybatis-mybatis.version>
