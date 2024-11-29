@@ -4,6 +4,7 @@ import com.rz.core.Assert;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.function.Function;
 
 public class StreamUtility {
     private static final int BUFFER_SIZE = 4096;
@@ -78,6 +79,21 @@ public class StreamUtility {
 
         try (FileOutputStream fileOutputStream = new FileOutputStream(file, append)) {
             fileOutputStream.write(contents.getBytes(charset));
+        }
+    }
+
+    public static void readFileProcessLine(String pathName, Charset charset, Function<String, Boolean> process) throws IOException {
+        Assert.isNotBlank(pathName, "pathName");
+
+        File file = new File(pathName);
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while (null != (line = bufferedReader.readLine())) {
+                Boolean keeping = process.apply(line);
+                if (!keeping) {
+                    break;
+                }
+            }
         }
     }
 }
